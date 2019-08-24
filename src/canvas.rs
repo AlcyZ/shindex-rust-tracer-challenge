@@ -1,8 +1,8 @@
 use crate::color::{col_to_string, Color};
 
-struct Canvas {
+pub struct Canvas {
     width: usize,
-    height: usize,
+    pub height: usize,
     pixels: Vec<Vec<Color>>,
 }
 
@@ -16,7 +16,7 @@ fn ppm_push(data: &mut Vec<String>, line: &mut String, col_str: String) {
 }
 
 impl Canvas {
-    fn new(width: usize, height: usize) -> Canvas {
+    pub fn new(width: usize, height: usize) -> Canvas {
         let r = vec![Color::black(); width];
         let pixels = vec![r; height];
 
@@ -27,8 +27,20 @@ impl Canvas {
         &self.pixels[height][width]
     }
 
-    fn write_pixel(&mut self, width: usize, height: usize, c: Color) {
-        self.pixels[height][width] = c
+    pub fn write_pixel(&mut self, width: usize, height: usize, c: Color) {
+        if let Option::Some(foo) = self.pixels.get(height) {
+            if let Option::Some(_) = foo.get(width) {
+                self.pixels[height][width] = c
+            }
+        }
+    }
+
+    pub fn to_ppm(&self) -> String {
+        let header = self.ppm_header();
+        let body = self.ppm_body();
+        let data = [header, body];
+
+        data.join("\n")
     }
 
     fn ppm_header(&self) -> String {
@@ -56,14 +68,6 @@ impl Canvas {
 
         lines.push("".to_string());
         lines.join("\n")
-    }
-
-    fn to_ppm(&self) -> String {
-        let header = self.ppm_header();
-        let body = self.ppm_body();
-        let data = [header, body];
-
-        data.join("\n")
     }
 }
 

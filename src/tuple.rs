@@ -1,7 +1,7 @@
-#[derive(Debug)]
-struct Tuple {
-    x: f64,
-    y: f64,
+#[derive(Debug, Clone, Copy)]
+pub struct Tuple {
+    pub x: f64,
+    pub y: f64,
     z: f64,
     w: f64,
 }
@@ -108,7 +108,7 @@ fn tuple(x: f64, y: f64, z: f64, w: f64) -> Tuple {
     }
 }
 
-fn point(x: f64, y: f64, z: f64) -> Tuple {
+pub fn point(x: f64, y: f64, z: f64) -> Tuple {
     Tuple {
         x,
         y,
@@ -117,7 +117,7 @@ fn point(x: f64, y: f64, z: f64) -> Tuple {
     }
 }
 
-fn vector(x: f64, y: f64, z: f64) -> Tuple {
+pub fn vector(x: f64, y: f64, z: f64) -> Tuple {
     Tuple {
         x,
         y,
@@ -126,7 +126,7 @@ fn vector(x: f64, y: f64, z: f64) -> Tuple {
     }
 }
 
-fn normalize(v: &mut Tuple) {
+pub fn normalize(v: &mut Tuple) {
     let mag = magnitude(v);
 
     v.x = v.x / mag;
