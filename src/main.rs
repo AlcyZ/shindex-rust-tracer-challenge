@@ -9,6 +9,7 @@ use std::time::Instant;
 mod tuple;
 mod color;
 mod canvas;
+mod matrix;
 
 struct Projectile {
     position: Tuple,
