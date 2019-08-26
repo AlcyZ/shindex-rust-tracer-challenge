@@ -1,4 +1,5 @@
-use crate::tuple::{Tuple, dot};
+use crate::tuple::{dot, Tuple};
+use crate::util::f64_eq;
 
 type Matrix4x4 = [[f64; 4]; 4];
 type Matrix3x3 = [[f64; 3]; 3];
@@ -10,6 +11,18 @@ const MATRIX_4X4_IDENTITY: Matrix4x4 = [
     [0.0, 0.0, 1.0, 0.0],
     [0.0, 0.0, 0.0, 1.0],
 ];
+
+fn matrix_4x4_eq(a: Matrix4x4, b: Matrix4x4) -> bool {
+    for (i, a_outer) in a.iter().enumerate() {
+        for (j, a_inner) in a_outer.iter().enumerate() {
+            if !f64_eq(*a_inner, b[i][j]) {
+                return false;
+            }
+        }
+    }
+
+    true
+}
 
 fn mul(a: Matrix4x4, b: Matrix4x4) -> Matrix4x4 {
     let mut m: Matrix4x4 = [[0.0; 4]; 4];
@@ -49,6 +62,68 @@ fn transpose(m: Matrix4x4) -> Matrix4x4 {
 
 fn determinant(m: Matrix2x2) -> f64 {
     m[0][0] * m[1][1] - m[1][0] * m[0][1]
+}
+
+fn minor(m: Matrix3x3, row: usize, col: usize) -> f64 {
+    determinant(submatrix_3x3(m, row, col))
+}
+
+fn cofactor(m: Matrix3x3, row: usize, col: usize) -> f64 {
+    let minor = minor(m, row, col);
+    let cf_identifier = row as i32 + col as i32;
+
+    if cf_identifier & 1 == 1 {
+        // is odd
+        return -minor;
+    }
+
+    minor
+}
+
+fn submatrix_4x4(m: Matrix4x4, row: usize, col: usize) -> Matrix3x3 {
+    let mut new: Matrix3x3 = [[0.0; 3]; 3];
+
+    let mut i = 0;
+    for r in 0..4 {
+        if r == row {
+            continue;
+        }
+        let mut j = 0;
+
+        for c in 0..4 {
+            if c == col {
+                continue;
+            }
+            new[i][j] = m[r][c];
+            j += 1;
+        }
+        i += 1;
+    }
+
+    new
+}
+
+fn submatrix_3x3(m: Matrix3x3, row: usize, col: usize) -> Matrix2x2 {
+    let mut new: Matrix2x2 = [[0.0; 2]; 2];
+
+    let mut i = 0;
+    for r in 0..3 {
+        if r == row {
+            continue;
+        }
+        let mut j = 0;
+
+        for c in 0..3 {
+            if c == col {
+                continue;
+            }
+            new[i][j] = m[r][c];
+            j += 1;
+        }
+        i += 1;
+    }
+
+    new
 }
 
 #[cfg(test)]
@@ -141,6 +216,64 @@ mod tests {
         ];
         assert_eq!(determinant(a), 17.0)
     }
+
+    #[test]
+    fn submatrix_of_3x3() {
+        let a = [
+            [1.0, 5.0, 0.0],
+            [-3.0, 2.0, 7.0],
+            [0.0, 6.0, -3.0],
+        ];
+        let expected_a = [
+            [-3.0, 2.0],
+            [0.0, 6.0],
+        ];
+        let b = [
+            [-6.0, 1.0, 1.0, 6.0],
+            [-8.0, 5.0, 8.0, 6.0],
+            [-1.0, 0.0, 8.0, 2.0],
+            [-7.0, 1.0, -1.0, 1.0],
+        ];
+        let expected_b = [
+            [-6.0, 1.0, 6.0],
+            [-8.0, 8.0, 6.0],
+            [-7.0, -1.0, 1.0],
+        ];
+        let actual_a = submatrix_3x3(a, 0, 2);
+        let actual_b = submatrix_4x4(b, 2, 1);
+
+        assert_eq!(actual_a, expected_a);
+        assert_eq!(actual_b, expected_b)
+    }
+
+    #[test]
+    fn calc_minor_of_3x3_matrix() {
+        let a: Matrix3x3 = [
+            [3.0, 5.0, 0.0],
+            [2.0, -1.0, -7.0],
+            [6.0, -1.0, 5.0],
+        ];
+        let b = submatrix_3x3(a, 1, 0);
+        let expected = 25 as f64;
+
+        let actual_determinant = determinant(b);
+        let actual_minor = minor(a, 1, 0);
+
+        assert_eq!(actual_determinant, expected);
+        assert_eq!(actual_minor, expected)
+    }
+
+    #[test]
+    fn calc_cofactor_of_matrix() {
+        let a: Matrix3x3 = [
+            [3.0, 5.0, 0.0],
+            [2.0, -1.0, -7.0],
+            [6.0, -1.0, 5.0],
+        ];
+
+        assert_eq!(minor(a, 0, 0), -12 as f64);
+        assert_eq!(cofactor(a, 0, 0), -12 as f64);
+        assert_eq!(minor(a, 1, 0), 25 as f64);
+        assert_eq!(cofactor(a, 1, 0), -25 as f64);
+    }
 }
-
-

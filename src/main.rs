@@ -10,6 +10,7 @@ mod tuple;
 mod color;
 mod canvas;
 mod matrix;
+mod util;
 
 struct Projectile {
     position: Tuple,

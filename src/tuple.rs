@@ -1,3 +1,5 @@
+use crate::util::f64_eq;
+
 pub type Tuple = [f64; 4];
 
 pub fn tuple_is_point(t: Tuple) -> bool {
@@ -9,7 +11,7 @@ pub fn tuple_is_vector(t: Tuple) -> bool {
 }
 
 pub fn tuple_equals(a: Tuple, b: Tuple) -> bool {
-    a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3]
+    f64_eq(a[0], b[0]) && f64_eq(a[1], b[1]) && f64_eq(a[2], b[2]) && a[3] == b[3]
 }
 
 pub fn tuple_add(a: Tuple, b: Tuple) -> Tuple {
