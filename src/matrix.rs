@@ -1,6 +1,8 @@
 use crate::tuple::{Tuple, dot};
 
 type Matrix4x4 = [[f64; 4]; 4];
+type Matrix3x3 = [[f64; 3]; 3];
+type Matrix2x2 = [[f64; 2]; 2];
 
 const MATRIX_4X4_IDENTITY: Matrix4x4 = [
     [1.0, 0.0, 0.0, 0.0],
@@ -9,7 +11,7 @@ const MATRIX_4X4_IDENTITY: Matrix4x4 = [
     [0.0, 0.0, 0.0, 1.0],
 ];
 
-fn matrix_4x4_mul(a: Matrix4x4, b: Matrix4x4) -> Matrix4x4 {
+fn mul(a: Matrix4x4, b: Matrix4x4) -> Matrix4x4 {
     let mut m: Matrix4x4 = [[0.0; 4]; 4];
     for row in 0..4 {
         for col in 0..4 {
@@ -22,7 +24,7 @@ fn matrix_4x4_mul(a: Matrix4x4, b: Matrix4x4) -> Matrix4x4 {
     m
 }
 
-fn matrix_4x4_mul_t(a: Matrix4x4, b: Tuple) -> Tuple {
+fn mul_by_tuple(a: Matrix4x4, b: Tuple) -> Tuple {
     let mut t = [0.0, 0.0, 0.0, 0.0];
 
     for row in 0..4 {
@@ -33,7 +35,7 @@ fn matrix_4x4_mul_t(a: Matrix4x4, b: Tuple) -> Tuple {
     t
 }
 
-fn matrix_transpose(m: Matrix4x4) -> Matrix4x4 {
+fn transpose(m: Matrix4x4) -> Matrix4x4 {
     let mut new: Matrix4x4 = [[0.0; 4]; 4];
 
     for row in 0..4 {
@@ -43,6 +45,10 @@ fn matrix_transpose(m: Matrix4x4) -> Matrix4x4 {
     }
 
     new
+}
+
+fn determinant(m: Matrix2x2) -> f64 {
+    m[0][0] * m[1][1] - m[1][0] * m[0][1]
 }
 
 #[cfg(test)]
@@ -70,7 +76,7 @@ mod tests {
             [40.0, 58.0, 110.0, 102.0],
             [16.0, 26.0, 46.0, 42.0],
         ];
-        let actual = matrix_4x4_mul(a, b);
+        let actual = mul(a, b);
         assert_eq!(actual, expected)
     }
 
@@ -84,7 +90,7 @@ mod tests {
         ];
         let b: Tuple = [1.0, 2.0, 3.0, 1.0];
         let expected = [18.0, 24.0, 33.0, 1.0];
-        let actual = matrix_4x4_mul_t(a, b);
+        let actual = mul_by_tuple(a, b);
         assert_eq!(actual, expected)
     }
 
@@ -97,7 +103,7 @@ mod tests {
             [8.0, 6.0, 4.0, 1.0],
             [0.0, 0.0, 0.0, 1.0],
         ];
-        let actual = matrix_4x4_mul(a, MATRIX_4X4_IDENTITY);
+        let actual = mul(a, MATRIX_4X4_IDENTITY);
         assert_eq!(actual, a)
     }
 
@@ -105,7 +111,7 @@ mod tests {
     #[test]
     fn multiply_tuple_by_identity() {
         let a: Tuple = [1.0, 2.0, 3.0, 4.0];
-        let actual = matrix_4x4_mul_t(MATRIX_4X4_IDENTITY, a);
+        let actual = mul_by_tuple(MATRIX_4X4_IDENTITY, a);
         assert_eq!(actual, a)
     }
 
@@ -123,8 +129,17 @@ mod tests {
             [3.0, 0.0, 5.0, 5.0],
             [0.0, 8.0, 3.0, 8.0],
         ];
-        let actual = matrix_transpose(a);
+        let actual = transpose(a);
         assert_eq!(actual, expected)
+    }
+
+    #[test]
+    fn calc_determinant_of_2x2_matrix() {
+        let a: Matrix2x2 = [
+            [1.0, 5.0],
+            [-3.0, 2.0],
+        ];
+        assert_eq!(determinant(a), 17.0)
     }
 }
 
