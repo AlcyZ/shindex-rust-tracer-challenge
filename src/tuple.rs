@@ -1,152 +1,95 @@
-#[derive(Debug, Clone, Copy)]
-pub struct Tuple {
-    pub x: f64,
-    pub y: f64,
-    z: f64,
-    w: f64,
+pub type Tuple = [f64; 4];
+
+pub fn tuple_is_point(t: Tuple) -> bool {
+    t[3] == 1_f64
 }
 
-impl Tuple {
-    fn is_point(&self) -> bool {
-        self.w == 1_f64
-    }
-    fn is_vector(&self) -> bool {
-        self.w == 0_f64
-    }
+pub fn tuple_is_vector(t: Tuple) -> bool {
+    t[3] == 0_f64
 }
 
-impl std::cmp::PartialEq for Tuple {
-    fn eq(&self, other: &Self) -> bool {
-        self.x == other.x && self.y == other.y && self.z == other.z && self.w == other.w
-    }
+pub fn tuple_equals(a: Tuple, b: Tuple) -> bool {
+    a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3]
 }
 
-impl std::ops::Add for Tuple {
-    type Output = Tuple;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        Tuple {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-            w: self.w + rhs.w,
-        }
-    }
+pub fn tuple_add(a: Tuple, b: Tuple) -> Tuple {
+    [
+        a[0] + b[0],
+        a[1] + b[1],
+        a[2] + b[2],
+        a[3] + b[3],
+    ]
 }
 
-impl std::ops::Sub for Tuple {
-    type Output = Tuple;
-
-    fn sub(self, rhs: Self) -> Self::Output {
-        Tuple {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-            w: self.w - rhs.w,
-        }
-    }
+pub fn tuple_subtract(a: Tuple, b: Tuple) -> Tuple {
+    [
+        a[0] - b[0],
+        a[1] - b[1],
+        a[2] - b[2],
+        a[3] - b[3],
+    ]
 }
 
-impl std::ops::Mul for Tuple {
-    type Output = Tuple;
-
-    fn mul(self, rhs: Self) -> Self::Output {
-        Tuple {
-            x: self.x * rhs.x,
-            y: self.y * rhs.y,
-            z: self.z * rhs.z,
-            w: self.w * rhs.w,
-        }
-    }
+pub fn tuple_mul_scalar(a: Tuple, b: f64) -> Tuple {
+    [
+        a[0] * b,
+        a[1] * b,
+        a[2] * b,
+        a[3] * b,
+    ]
 }
 
-impl std::ops::Mul<f64> for Tuple {
-    type Output = Tuple;
-
-    fn mul(self, rhs: f64) -> Self::Output {
-        Tuple {
-            x: self.x * rhs,
-            y: self.y * rhs,
-            z: self.z * rhs,
-            w: self.w * rhs,
-        }
-    }
+pub fn tuple_div_scalar(a: Tuple, b: f64) -> Tuple {
+    [
+        a[0] / b,
+        a[1] / b,
+        a[2] / b,
+        a[3] / b,
+    ]
 }
 
-impl std::ops::Div<f64> for Tuple {
-    type Output = Tuple;
-
-    fn div(self, rhs: f64) -> Self::Output {
-        Tuple {
-            x: self.x / rhs,
-            y: self.y / rhs,
-            z: self.z / rhs,
-            w: self.w / rhs,
-        }
-    }
-}
-
-impl std::ops::Neg for Tuple {
-    type Output = Tuple;
-
-    fn neg(self) -> Self::Output {
-        Tuple {
-            x: -self.x,
-            y: -self.y,
-            z: -self.z,
-            w: -self.w,
-        }
-    }
+pub fn tuple_neg(a: Tuple) -> Tuple {
+    [
+        -a[0],
+        -a[1],
+        -a[2],
+        -a[3],
+    ]
 }
 
 fn tuple(x: f64, y: f64, z: f64, w: f64) -> Tuple {
-    Tuple {
-        x,
-        y,
-        z,
-        w,
-    }
+    [x, y, z, w]
 }
 
 pub fn point(x: f64, y: f64, z: f64) -> Tuple {
-    Tuple {
-        x,
-        y,
-        z,
-        w: 1_f64,
-    }
+    [x, y, z, 1_f64]
 }
 
 pub fn vector(x: f64, y: f64, z: f64) -> Tuple {
-    Tuple {
-        x,
-        y,
-        z,
-        w: 0_f64,
-    }
+    [x, y, z, 0_f64]
 }
 
 pub fn normalize(v: &mut Tuple) {
     let mag = magnitude(v);
 
-    v.x = v.x / mag;
-    v.y = v.y / mag;
-    v.z = v.z / mag;
-    v.w = v.w / mag;
+    v[0] = v[0] / mag;
+    v[1] = v[1] / mag;
+    v[2] = v[2] / mag;
+    v[3] = v[3] / mag;
 }
 
 fn magnitude(v: &Tuple) -> f64 {
-    (v.x.powi(2) + v.y.powi(2) + v.z.powi(2) + v.w.powi(2)).sqrt()
+    (v[0].powi(2) + v[1].powi(2) + v[2].powi(2) + v[3].powi(2)).sqrt()
 }
 
 fn dot(a: &Tuple, b: &Tuple) -> f64 {
-    a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w
+    a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3]
 }
 
 fn cross_vec(a: &Tuple, b: &Tuple) -> Tuple {
-    vector(a.y * b.z - a.z * b.y,
-           a.z * b.x - a.x * b.z,
-           a.x * b.y - a.y * b.x)
+    vector(a[1] * b[2] - a[2] * b[1],
+           a[2] * b[0] - a[0] * b[2],
+           a[0] * b[1] - a[1] * b[0])
 }
 
 #[cfg(test)]
@@ -157,24 +100,24 @@ mod tests {
     fn a_tuple_with_w_equals_1_is_a_point() {
         let a = tuple(1_f64, 2_f64, 3_f64, 1_f64);
 
-        assert_eq!(1_f64, a.x);
-        assert_eq!(2_f64, a.y);
-        assert_eq!(3_f64, a.z);
-        assert_eq!(1_f64, a.w);
-        assert!(a.is_point());
-        assert!(!a.is_vector());
+        assert_eq!(1_f64, a[0]);
+        assert_eq!(2_f64, a[1]);
+        assert_eq!(3_f64, a[2]);
+        assert_eq!(1_f64, a[3]);
+        assert!(tuple_is_point(a));
+        assert!(!tuple_is_vector(a));
     }
 
     #[test]
     fn a_tuple_with_w_equals_0_is_a_vector() {
         let a = tuple(1_f64, 2_f64, 3_f64, 0_f64);
 
-        assert_eq!(1_f64, a.x);
-        assert_eq!(2_f64, a.y);
-        assert_eq!(3_f64, a.z);
-        assert_eq!(0_f64, a.w);
-        assert!(a.is_vector());
-        assert!(!a.is_point());
+        assert_eq!(1_f64, a[0]);
+        assert_eq!(2_f64, a[1]);
+        assert_eq!(3_f64, a[2]);
+        assert_eq!(0_f64, a[3]);
+        assert!(tuple_is_vector(a));
+        assert!(!tuple_is_point(a));
     }
 
     #[test]
@@ -199,7 +142,7 @@ mod tests {
         let b = tuple(1_f64, 2_f64, 3_f64, 0_f64);
         let c = tuple(3_f64, 5_f64, -1_f64, 1_f64);
 
-        assert_eq!(c, a + b)
+        assert_eq!(c, tuple_add(a, b))
     }
 
     #[test]
@@ -208,7 +151,7 @@ mod tests {
         let b = tuple(1_f64, 2_f64, 3_f64, 0_f64);
         let c = tuple(1_f64, 1_f64, -7_f64, 1_f64);
 
-        assert_eq!(c, a - b)
+        assert_eq!(c, tuple_subtract(a, b))
     }
 
     #[test]
@@ -216,14 +159,14 @@ mod tests {
         let a = tuple(1_f64, -2_f64, 3_f64, -4_f64);
         let b = tuple(-1_f64, 2_f64, -3_f64, 4_f64);
 
-        assert_eq!(b, -a)
+        assert_eq!(b, tuple_neg(a))
     }
 
     #[test]
     fn multiply_tuple_by_scalar() {
         let a = tuple(1_f64, -2_f64, 3_f64, -4_f64);
         let b = 3.5;
-        let c = a * b;
+        let c = tuple_mul_scalar(a, b);
         let d = tuple(3.5, -7_f64, 10.5, -14_f64);
 
         assert_eq!(d, c)
@@ -235,7 +178,7 @@ mod tests {
         let b = 0.5;
         let c = tuple(0.5, -1_f64, 1.5, -2_f64);
 
-        assert_eq!(c, a * b)
+        assert_eq!(c, tuple_mul_scalar(a, b))
     }
 
     #[test]
@@ -244,7 +187,7 @@ mod tests {
         let b = 2_f64;
         let c = tuple(0.5, -1_f64, 1.5, -2_f64);
 
-        assert_eq!(c, a / b)
+        assert_eq!(c, tuple_div_scalar(a, b))
     }
 
     #[test]
