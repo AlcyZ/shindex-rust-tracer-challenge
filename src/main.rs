@@ -42,7 +42,7 @@ fn main() {
     let start = point(0_f64, 1_f64, 0_f64);
 
     let mut velocity = vector(1_f64, 1.8, 0_f64);
-    normalize(&mut velocity);
+    velocity = normalize(velocity);
     velocity = tuple_mul_scalar(velocity, 11.25);
 
     let mut projectile = Projectile { position: start, velocity };

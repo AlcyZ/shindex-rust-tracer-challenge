@@ -69,24 +69,21 @@ pub fn vector(x: f64, y: f64, z: f64) -> Tuple {
     [x, y, z, 0_f64]
 }
 
-pub fn normalize(v: &mut Tuple) {
+pub fn normalize(v: Tuple) -> Tuple {
     let mag = magnitude(v);
 
-    v[0] = v[0] / mag;
-    v[1] = v[1] / mag;
-    v[2] = v[2] / mag;
-    v[3] = v[3] / mag;
+    [v[0] / mag, v[1] / mag, v[2] / mag, v[3] / mag]
 }
 
-fn magnitude(v: &Tuple) -> f64 {
+fn magnitude(v: Tuple) -> f64 {
     (v[0].powi(2) + v[1].powi(2) + v[2].powi(2) + v[3].powi(2)).sqrt()
 }
 
-pub fn dot(a: &Tuple, b: &Tuple) -> f64 {
+pub fn dot(a: Tuple, b: Tuple) -> f64 {
     a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3]
 }
 
-fn cross_vec(a: &Tuple, b: &Tuple) -> Tuple {
+fn cross_vec(a: Tuple, b: Tuple) -> Tuple {
     vector(a[1] * b[2] - a[2] * b[1],
            a[2] * b[0] - a[0] * b[2],
            a[0] * b[1] - a[1] * b[0])
@@ -200,45 +197,45 @@ mod tests {
 
         let f = 14_f64;
 
-        assert_eq!(1_f64, magnitude(&a));
-        assert_eq!(1_f64, magnitude(&b));
-        assert_eq!(1_f64, magnitude(&c));
-        assert_eq!(magnitude(&d), f.sqrt());
-        assert_eq!(magnitude(&e), f.sqrt());
+        assert_eq!(1_f64, magnitude(a));
+        assert_eq!(1_f64, magnitude(b));
+        assert_eq!(1_f64, magnitude(c));
+        assert_eq!(magnitude(d), f.sqrt());
+        assert_eq!(magnitude(e), f.sqrt());
     }
 
     #[test]
     fn normalize_vector_one() {
-        let mut a = vector(4_f64, 0_f64, 0_f64);
-        let b = vector(1_f64, 0_f64, 0_f64);
-        normalize(&mut a);
+        let a = vector(4_f64, 0_f64, 0_f64);
+        let expected = vector(1_f64, 0_f64, 0_f64);
+        let actual = normalize(a);
 
-        assert_eq!(b, a);
+        assert_eq!(expected, actual);
     }
 
     #[test]
     fn normalize_vector_two() {
-        let mut a = vector(1_f64, 2_f64, 3_f64);
+        let a = vector(1_f64, 2_f64, 3_f64);
 
-        let b = vector(1_f64 / 14_f64.sqrt(), 2_f64 / 14_f64.sqrt(), 3_f64 / 14_f64.sqrt());
-        normalize(&mut a);
+        let expected = vector(1_f64 / 14_f64.sqrt(), 2_f64 / 14_f64.sqrt(), 3_f64 / 14_f64.sqrt());
+        let actual = normalize(a);
 
-        assert_eq!(b, a);
+        assert_eq!(expected, actual);
     }
 
     #[test]
     fn magnitude_of_normalized_vector() {
-        let mut a = vector(1_f64, 2_f64, 3_f64);
-        normalize(&mut a);
+        let a = vector(1_f64, 2_f64, 3_f64);
+        let normalized = normalize(a);
 
-        assert_eq!(1_f64, magnitude(&a));
+        assert_eq!(1_f64, magnitude(normalized));
     }
 
     #[test]
     fn dot_product_of_two_tuples() {
         let a = vector(1_f64, 2_f64, 3_f64);
         let b = vector(2_f64, 3_f64, 4_f64);
-        let c = dot(&a, &b);
+        let c = dot(a, b);
 
         assert_eq!(20_f64, c)
     }
@@ -249,8 +246,8 @@ mod tests {
         let b = vector(2_f64, 3_f64, 4_f64);
         let c = vector(-1_f64, 2_f64, -1_f64);
         let d = vector(1_f64, -2_f64, 1_f64);
-        let e = cross_vec(&a, &b);
-        let f = cross_vec(&b, &a);
+        let e = cross_vec(a, b);
+        let f = cross_vec(b, a);
 
         assert_eq!(e, c);
         assert_eq!(d, f);

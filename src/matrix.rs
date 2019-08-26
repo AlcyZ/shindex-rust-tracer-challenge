@@ -27,7 +27,7 @@ fn matrix_4x4_mul_t(a: Matrix4x4, b: Tuple) -> Tuple {
 
     for row in 0..4 {
         let a = a[row];
-        t[row] = dot(&a, &b);
+        t[row] = dot(a, b);
     }
 
     t
