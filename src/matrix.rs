@@ -60,16 +60,52 @@ fn transpose(m: Matrix4x4) -> Matrix4x4 {
     new
 }
 
-fn determinant(m: Matrix2x2) -> f64 {
+fn determinant_2x2(m: Matrix2x2) -> f64 {
     m[0][0] * m[1][1] - m[1][0] * m[0][1]
 }
 
-fn minor(m: Matrix3x3, row: usize, col: usize) -> f64 {
-    determinant(submatrix_3x3(m, row, col))
+fn determinant_3x3(m: Matrix3x3) -> f64 {
+    let mut d = 0.0;
+
+    for col in 0..3 {
+        d = d + m[0][col] * cofactor_3x3(m, 0, col);
+    }
+
+    d
 }
 
-fn cofactor(m: Matrix3x3, row: usize, col: usize) -> f64 {
-    let minor = minor(m, row, col);
+fn determinant_4x4(m: Matrix4x4) -> f64 {
+    let mut d = 0.0;
+
+    for col in 0..4 {
+        d = d + m[0][col] * cofactor_4x4(m, 0, col);
+    }
+
+    d
+}
+
+fn minor_3x3(m: Matrix3x3, row: usize, col: usize) -> f64 {
+    determinant_2x2(submatrix_3x3(m, row, col))
+}
+
+fn minor_4x4(m: Matrix4x4, row: usize, col: usize) -> f64 {
+    determinant_3x3(submatrix_4x4(m, row, col))
+}
+
+fn cofactor_3x3(m: Matrix3x3, row: usize, col: usize) -> f64 {
+    let minor = minor_3x3(m, row, col);
+    let cf_identifier = row as i32 + col as i32;
+
+    if cf_identifier & 1 == 1 {
+        // is odd
+        return -minor;
+    }
+
+    minor
+}
+
+fn cofactor_4x4(m: Matrix4x4, row: usize, col: usize) -> f64 {
+    let minor = minor_4x4(m, row, col);
     let cf_identifier = row as i32 + col as i32;
 
     if cf_identifier & 1 == 1 {
@@ -214,7 +250,7 @@ mod tests {
             [1.0, 5.0],
             [-3.0, 2.0],
         ];
-        assert_eq!(determinant(a), 17.0)
+        assert_eq!(determinant_2x2(a), 17.0)
     }
 
     #[test]
@@ -256,8 +292,8 @@ mod tests {
         let b = submatrix_3x3(a, 1, 0);
         let expected = 25 as f64;
 
-        let actual_determinant = determinant(b);
-        let actual_minor = minor(a, 1, 0);
+        let actual_determinant = determinant_2x2(b);
+        let actual_minor = minor_3x3(a, 1, 0);
 
         assert_eq!(actual_determinant, expected);
         assert_eq!(actual_minor, expected)
@@ -271,9 +307,39 @@ mod tests {
             [6.0, -1.0, 5.0],
         ];
 
-        assert_eq!(minor(a, 0, 0), -12 as f64);
-        assert_eq!(cofactor(a, 0, 0), -12 as f64);
-        assert_eq!(minor(a, 1, 0), 25 as f64);
-        assert_eq!(cofactor(a, 1, 0), -25 as f64);
+        assert_eq!(minor_3x3(a, 0, 0), -12 as f64);
+        assert_eq!(cofactor_3x3(a, 0, 0), -12 as f64);
+        assert_eq!(minor_3x3(a, 1, 0), 25 as f64);
+        assert_eq!(cofactor_3x3(a, 1, 0), -25 as f64);
+    }
+
+    #[test]
+    fn calc_determinant_of_3x3_matrix() {
+        let a: Matrix3x3 = [
+            [1.0, 2.0, 6.0],
+            [-5.0, 8.0, -4.0],
+            [2.0, 6.0, 4.0],
+        ];
+
+        assert_eq!(cofactor_3x3(a, 0, 0), 56_f64);
+        assert_eq!(cofactor_3x3(a, 0, 1), 12_f64);
+        assert_eq!(cofactor_3x3(a, 0, 2), -46_f64);
+        assert_eq!(determinant_3x3(a), -196_f64);
+    }
+
+    #[test]
+    fn calc_determinant_of_4x4_matrix() {
+        let a: Matrix4x4 = [
+            [-2.0, -8.0, 3.0, 5.0],
+            [-3.0, 1.0, 7.0, 3.0],
+            [1.0, 2.0, -9.0, 6.0],
+            [-6.0, 7.0, 7.0, -9.0],
+        ];
+
+        assert_eq!(cofactor_4x4(a, 0, 0), 690_f64);
+        assert_eq!(cofactor_4x4(a, 0, 1), 447_f64);
+        assert_eq!(cofactor_4x4(a, 0, 2), 210_f64);
+        assert_eq!(cofactor_4x4(a, 0, 3), 51_f64);
+        assert_eq!(determinant_4x4(a), -4071_f64);
     }
 }
