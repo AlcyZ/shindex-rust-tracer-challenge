@@ -162,6 +162,30 @@ fn submatrix_3x3(m: Matrix3x3, row: usize, col: usize) -> Matrix2x2 {
     new
 }
 
+fn is_invertible(m: Matrix4x4) -> bool {
+    determinant_4x4(m) != 0_f64
+}
+
+fn inverse(m: Matrix4x4) -> Option<Matrix4x4> {
+    let mut new: Matrix4x4;
+    let determinant = determinant_4x4(m);
+
+    if determinant == 0_f64 {
+        return None;
+    }
+    new = [[0.0; 4]; 4];
+
+    for row in 0..4 {
+        for col in 0..4 {
+            let cofactor = cofactor_4x4(m, row, col);
+
+            new[col][row] = cofactor / determinant
+        }
+    }
+
+    Some(new)
+}
+
 #[cfg(test)]
 mod tests {
     use crate::matrix::*;
@@ -341,5 +365,72 @@ mod tests {
         assert_eq!(cofactor_4x4(a, 0, 2), 210_f64);
         assert_eq!(cofactor_4x4(a, 0, 3), 51_f64);
         assert_eq!(determinant_4x4(a), -4071_f64);
+    }
+
+    #[test]
+    fn invertible_matrix_test() {
+        let a = [
+            [6.0, 4.0, 4.0, 4.0],
+            [5.0, 5.0, 7.0, 6.0],
+            [4.0, -9.0, 3.0, -7.0],
+            [9.0, 1.0, 7.0, -6.0],
+        ];
+        assert_eq!(determinant_4x4(a), -2120_f64);
+        assert!(is_invertible(a));
+    }
+
+    #[test]
+    fn non_invertible_matrix_test() {
+        let a = [
+            [-4.0, 2.0, -2.0, -3.0],
+            [9.0, 6.0, 2.0, 6.0],
+            [0.0, -5.0, 1.0, -5.0],
+            [0.0, 0.0, 0.0, 0.0],
+        ];
+        assert_eq!(determinant_4x4(a), 0_f64);
+        assert!(!is_invertible(a));
+    }
+
+    #[test]
+    fn calc_inverse_of_matrix() {
+        let a: Matrix4x4 = [
+            [-5.0, 2.0, 6.0, -8.0],
+            [1.0, -5.0, 1.0, 8.0],
+            [7.0, 7.0, -6.0, -7.0],
+            [1.0, -3.0, 7.0, 4.0],
+        ];
+        let b = inverse(a).unwrap();
+        let expected: Matrix4x4 = [
+            [0.21805, 0.45113, 0.24060, -0.04511],
+            [-0.80827, -1.45677, -0.44361, 0.52068],
+            [-0.07895, -0.22368, -0.05263, 0.19737],
+            [-0.52256, -0.81391, -0.30075, 0.30639],
+        ];
+
+        assert_eq!(determinant_4x4(a), 532_f64);
+        assert_eq!(cofactor_4x4(a, 2, 3), -160_f64);
+        assert_eq!(b[3][2], -160_f64 / 532_f64);
+        assert_eq!(cofactor_4x4(a, 3, 2), 105_f64);
+        assert_eq!(b[2][3], 105_f64 / 532_f64);
+    }
+
+    #[test]
+    fn calc_inverse_of_matrix_2() {
+        let a = [
+            [8.0, -5.0, 9.0, 2.0],
+            [7.0, 5.0, 6.0, 1.0],
+            [-6.0, 0.0, 9.0, 6.0],
+            [-3.0, 0.0, -9.0, -4.0],
+        ];
+
+        let expected = [
+            [-0.15385, -0.15385, -0.28205, -0.53846],
+            [-0.07692, 0.12308, 0.02564, 0.03077],
+            [0.35897, 0.35897, 0.43590, 0.92308],
+            [-0.69231, -0.69231, -0.76923, -1.92308],
+        ];
+        let actual = inverse(a).unwrap();
+
+        assert!(matrix_4x4_eq(actual, expected))
     }
 }
