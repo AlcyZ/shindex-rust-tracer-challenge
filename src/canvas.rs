@@ -1,7 +1,7 @@
 use crate::color::{col_to_string, Color};
 
 pub struct Canvas {
-    width: usize,
+    pub width: usize,
     pub height: usize,
     pixels: Vec<Vec<Color>>,
 }

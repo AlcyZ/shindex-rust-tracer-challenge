@@ -1,7 +1,5 @@
-use std::fs::File;
-use std::io::Write;
-
-use crate::playground::run;
+use crate::playground::clock::run as clock_run;
+use crate::playground::projectile::run as projectile_run;
 
 mod tuple;
 mod color;
@@ -12,5 +10,6 @@ mod util;
 mod playground;
 
 fn main() {
-    run()
+    clock_run(600);
+    projectile_run()
 }

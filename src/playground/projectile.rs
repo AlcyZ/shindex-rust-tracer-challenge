@@ -16,7 +16,6 @@ struct Environment {
     wind: Tuple,
 }
 
-
 fn tick(env: &Environment, pro: Projectile, canvas: &mut Canvas) -> Projectile {
     let old_vel = pro.velocity;
 
@@ -49,13 +48,12 @@ pub fn run() {
 
     let mut c = Canvas::new(900, 550);
 
-
     while projectile.position[1] > 0 as f64 {
         projectile = tick(&env, projectile, &mut c);
     }
 
     let ppm = c.to_ppm();
-    let mut f = File::create("./result.ppm").expect("Unable to create file");
+    let mut f = File::create("./PuttingItTogether/projectile.ppm").expect("Unable to create file");
     f.write_all(ppm.as_bytes()).expect("Unable to write data");
 
     println!("{:?}", now.elapsed());
