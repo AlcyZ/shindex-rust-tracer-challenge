@@ -58,7 +58,6 @@ impl Canvas {
                 let green = col_to_string(&pix.green);
                 let blue = col_to_string(&pix.blue);
 
-
                 ppm_push(&mut lines, &mut line, red);
                 ppm_push(&mut lines, &mut line, green);
                 ppm_push(&mut lines, &mut line, blue);
