@@ -8,6 +8,7 @@ mod matrix;
 mod transformation;
 mod util;
 mod playground;
+mod ray;
 
 fn main() {
     clock_run(600);
