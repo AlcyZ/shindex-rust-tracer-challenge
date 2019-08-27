@@ -10,6 +10,7 @@ mod tuple;
 mod color;
 mod canvas;
 mod matrix;
+mod transformation;
 mod util;
 
 struct Projectile {

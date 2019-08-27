@@ -10,7 +10,7 @@ pub fn tuple_is_vector(t: Tuple) -> bool {
     t[3] == 0_f64
 }
 
-pub fn tuple_equals(a: Tuple, b: Tuple) -> bool {
+pub fn tuple_eq(a: Tuple, b: Tuple) -> bool {
     f64_eq(a[0], b[0]) && f64_eq(a[1], b[1]) && f64_eq(a[2], b[2]) && a[3] == b[3]
 }
 

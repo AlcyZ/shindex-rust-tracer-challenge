@@ -1,18 +1,18 @@
 use crate::tuple::{dot, Tuple};
 use crate::util::f64_eq;
 
-type Matrix4x4 = [[f64; 4]; 4];
+pub type Matrix4x4 = [[f64; 4]; 4];
 type Matrix3x3 = [[f64; 3]; 3];
 type Matrix2x2 = [[f64; 2]; 2];
 
-const MATRIX_4X4_IDENTITY: Matrix4x4 = [
+pub const MATRIX_4X4_IDENTITY: Matrix4x4 = [
     [1.0, 0.0, 0.0, 0.0],
     [0.0, 1.0, 0.0, 0.0],
     [0.0, 0.0, 1.0, 0.0],
     [0.0, 0.0, 0.0, 1.0],
 ];
 
-fn matrix_4x4_eq(a: Matrix4x4, b: Matrix4x4) -> bool {
+pub fn matrix_4x4_eq(a: Matrix4x4, b: Matrix4x4) -> bool {
     for (i, a_outer) in a.iter().enumerate() {
         for (j, a_inner) in a_outer.iter().enumerate() {
             if !f64_eq(*a_inner, b[i][j]) {
@@ -37,7 +37,7 @@ fn mul(a: Matrix4x4, b: Matrix4x4) -> Matrix4x4 {
     m
 }
 
-fn mul_by_tuple(a: Matrix4x4, b: Tuple) -> Tuple {
+pub fn mul_by_tuple(a: Matrix4x4, b: Tuple) -> Tuple {
     let mut t = [0.0, 0.0, 0.0, 0.0];
 
     for row in 0..4 {
@@ -166,7 +166,7 @@ fn is_invertible(m: Matrix4x4) -> bool {
     determinant_4x4(m) != 0_f64
 }
 
-fn inverse(m: Matrix4x4) -> Option<Matrix4x4> {
+pub fn inverse(m: Matrix4x4) -> Option<Matrix4x4> {
     let mut new: Matrix4x4;
     let determinant = determinant_4x4(m);
 
