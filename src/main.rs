@@ -6,9 +6,10 @@ mod color;
 mod canvas;
 mod matrix;
 mod transformation;
+mod ray;
+mod sphere;
 mod util;
 mod playground;
-mod ray;
 
 fn main() {
     clock_run(600);
