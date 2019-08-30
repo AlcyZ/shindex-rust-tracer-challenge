@@ -8,6 +8,7 @@ mod matrix;
 mod transformation;
 mod ray;
 mod sphere;
+mod intersection;
 mod util;
 mod playground;
 
