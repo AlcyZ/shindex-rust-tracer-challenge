@@ -1,9 +1,9 @@
 use crate::ray::RayError::{DirectionIsNotVector, OriginIsNotPoint};
-use crate::tuple::{Tuple, tuple_add, tuple_is_point, tuple_is_vector, tuple_mul_scalar};
+use crate::tuple::{TupleBak, tuple_add, tuple_is_point, tuple_is_vector, tuple_mul_scalar};
 
 pub struct Ray {
-    pub origin: Tuple,
-    pub direction: Tuple,
+    pub origin: TupleBak,
+    pub direction: TupleBak,
 }
 
 #[derive(Debug)]
@@ -13,7 +13,7 @@ pub enum RayError {
 }
 
 impl Ray {
-    pub fn new(origin: Tuple, direction: Tuple) -> Result<Ray, RayError> {
+    pub fn new(origin: TupleBak, direction: TupleBak) -> Result<Ray, RayError> {
         if !tuple_is_point(origin) {
             return Err(RayError::OriginIsNotPoint);
         }
@@ -25,7 +25,7 @@ impl Ray {
     }
 }
 
-fn position(r: &Ray, time: f64) -> Tuple {
+fn position(r: &Ray, time: f64) -> TupleBak {
     tuple_add(r.origin, tuple_mul_scalar(r.direction, time))
 }
 

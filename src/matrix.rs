@@ -1,4 +1,4 @@
-use crate::tuple::{dot, Tuple};
+use crate::tuple::{dot, TupleBak};
 use crate::util::f64_eq;
 
 pub type Matrix4x4 = [[f64; 4]; 4];
@@ -37,7 +37,7 @@ fn mul(a: Matrix4x4, b: Matrix4x4) -> Matrix4x4 {
     m
 }
 
-pub fn mul_by_tuple(a: Matrix4x4, b: Tuple) -> Tuple {
+pub fn mul_by_tuple(a: Matrix4x4, b: TupleBak) -> TupleBak {
     let mut t = [0.0, 0.0, 0.0, 0.0];
 
     for row in 0..4 {
@@ -189,7 +189,7 @@ pub fn inverse(m: Matrix4x4) -> Option<Matrix4x4> {
 #[cfg(test)]
 mod tests {
     use crate::matrix::*;
-    use crate::tuple::Tuple;
+    use crate::tuple::TupleBak;
 
     #[test]
     fn multiply_matrix() {
@@ -223,7 +223,7 @@ mod tests {
             [8.0, 6.0, 4.0, 1.0],
             [0.0, 0.0, 0.0, 1.0],
         ];
-        let b: Tuple = [1.0, 2.0, 3.0, 1.0];
+        let b: TupleBak = [1.0, 2.0, 3.0, 1.0];
         let expected = [18.0, 24.0, 33.0, 1.0];
         let actual = mul_by_tuple(a, b);
         assert_eq!(actual, expected)
@@ -245,7 +245,7 @@ mod tests {
 
     #[test]
     fn multiply_tuple_by_identity() {
-        let a: Tuple = [1.0, 2.0, 3.0, 4.0];
+        let a: TupleBak = [1.0, 2.0, 3.0, 4.0];
         let actual = mul_by_tuple(MATRIX_4X4_IDENTITY, a);
         assert_eq!(actual, a)
     }

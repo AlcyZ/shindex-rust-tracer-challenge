@@ -10,10 +10,10 @@ fn sphere() -> Sphere {
 
 #[cfg(test)]
 mod tests {
-    use crate::ray::Ray;
-    use crate::sphere::{ sphere};
-    use crate::tuple::{point, vector};
     use crate::intersection::intersect;
+    use crate::ray::Ray;
+    use crate::sphere::sphere;
+    use crate::tuple::{point, vector};
 
     #[test]
     fn a_ray_intersects_a_sphere_at_two_points() {

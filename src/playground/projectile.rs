@@ -7,13 +7,13 @@ use crate::color::Color;
 use crate::tuple::*;
 
 struct Projectile {
-    position: Tuple,
-    velocity: Tuple,
+    position: TupleBak,
+    velocity: TupleBak,
 }
 
 struct Environment {
-    gravity: Tuple,
-    wind: Tuple,
+    gravity: TupleBak,
+    wind: TupleBak,
 }
 
 fn tick(env: &Environment, pro: Projectile, canvas: &mut Canvas) -> Projectile {
