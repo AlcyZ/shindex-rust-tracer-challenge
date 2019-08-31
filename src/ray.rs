@@ -1,9 +1,9 @@
 use crate::ray::RayError::{DirectionIsNotVector, OriginIsNotPoint};
-use crate::tuple::{TupleBak, tuple_add, tuple_is_point, tuple_is_vector, tuple_mul_scalar};
+use crate::tuple::Tuple;
 
 pub struct Ray {
-    pub origin: TupleBak,
-    pub direction: TupleBak,
+    pub origin: Tuple,
+    pub direction: Tuple,
 }
 
 #[derive(Debug)]
@@ -13,11 +13,11 @@ pub enum RayError {
 }
 
 impl Ray {
-    pub fn new(origin: TupleBak, direction: TupleBak) -> Result<Ray, RayError> {
-        if !tuple_is_point(origin) {
+    pub fn new(origin: Tuple, direction: Tuple) -> Result<Ray, RayError> {
+        if !origin.is_point() {
             return Err(RayError::OriginIsNotPoint);
         }
-        if !tuple_is_vector(direction) {
+        if !direction.is_vector() {
             return Err(RayError::DirectionIsNotVector);
         }
 
@@ -25,19 +25,20 @@ impl Ray {
     }
 }
 
-fn position(r: &Ray, time: f64) -> TupleBak {
-    tuple_add(r.origin, tuple_mul_scalar(r.direction, time))
+fn position(r: &Ray, time: f64) -> Tuple {
+    *&r.origin + *&r.direction * time
+//    tuple_add(r.origin, tuple_mul_scalar(r.direction, time))
 }
 
 #[cfg(test)]
 mod tests {
     use crate::ray::{position, Ray};
-    use crate::tuple::{point, vector};
+    use crate::tuple::Tuple;
 
     #[test]
     fn creating_and_querying_a_ray() {
-        let origin = point(1.0, 2.0, 3.0);
-        let direction = vector(4.0, 5.0, 6.0);
+        let origin = Tuple::point(1.0, 2.0, 3.0);
+        let direction = Tuple::vector(4.0, 5.0, 6.0);
 
         let ray = Ray::new(origin, direction).expect("wrong initial values");
 
@@ -47,12 +48,12 @@ mod tests {
 
     #[test]
     fn computing_a_point_from_a_distance() {
-        let r = Ray::new(point(2.0, 3.0, 4.0), vector(1.0, 0.0, 0.0)).expect("wrong init values");
+        let r = Ray::new(Tuple::point(2.0, 3.0, 4.0), Tuple::vector(1.0, 0.0, 0.0)).expect("wrong init values");
 
-        let expected_a = point(2.0, 3.0, 4.0);
-        let expected_b = point(3.0, 3.0, 4.0);
-        let expected_c = point(1.0, 3.0, 4.0);
-        let expected_d = point(4.5, 3.0, 4.0);
+        let expected_a = Tuple::point(2.0, 3.0, 4.0);
+        let expected_b = Tuple::point(3.0, 3.0, 4.0);
+        let expected_c = Tuple::point(1.0, 3.0, 4.0);
+        let expected_d = Tuple::point(4.5, 3.0, 4.0);
 
         assert_eq!(position(&r, 0.0), expected_a);
         assert_eq!(position(&r, 1.0), expected_b);

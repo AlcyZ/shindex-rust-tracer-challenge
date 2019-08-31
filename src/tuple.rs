@@ -1,7 +1,7 @@
 use crate::util::f64_eq;
 
-#[derive(Debug)]
-struct Tuple {
+#[derive(Debug, Copy, Clone)]
+pub struct Tuple {
     x: f64,
     y: f64,
     z: f64,
@@ -9,31 +9,35 @@ struct Tuple {
 }
 
 impl Tuple {
-    fn new(x: f64, y: f64, z: f64, w: f64) -> Tuple {
+    pub fn new(x: f64, y: f64, z: f64, w: f64) -> Tuple {
         Tuple { x, y, z, w }
     }
 
-    fn point(x: f64, y: f64, z: f64) -> Tuple {
+    pub fn point(x: f64, y: f64, z: f64) -> Tuple {
         Tuple::new(x, y, z, 1_f64)
     }
 
-    fn vector(x: f64, y: f64, z: f64) -> Tuple {
+    pub fn vector(x: f64, y: f64, z: f64) -> Tuple {
         Tuple::new(x, y, z, 0_f64)
     }
 
-    fn is_point(&self) -> bool {
+    pub fn xyz(&self) -> (f64, f64, f64) {
+        (self.x, self.y, self.z)
+    }
+
+    pub fn is_point(&self) -> bool {
         self.w == 1_f64
     }
 
-    fn is_vector(&self) -> bool {
+    pub fn is_vector(&self) -> bool {
         self.w == 0_f64
     }
 
-    fn magnitude(&self) -> f64 {
+    pub fn magnitude(&self) -> f64 {
         (self.x.powi(2) + self.y.powi(2) + self.z.powi(2) + self.w.powi(2)).sqrt()
     }
 
-    fn normalize(&self) -> Tuple {
+    pub fn normalize(&self) -> Tuple {
         let mag = self.magnitude();
 
         Tuple {
@@ -44,11 +48,11 @@ impl Tuple {
         }
     }
 
-    fn dot(&self, other: Tuple) -> f64 {
+    pub fn dot(&self, other: Tuple) -> f64 {
         self.x * other.x + self.y * other.y + self.z * other.z + self.w * other.w
     }
 
-    fn cross(&self, other: &Tuple) -> Tuple {
+    pub fn cross(&self, other: Tuple) -> Tuple {
         Tuple::vector(self.y * other.z - self.z * other.y,
                       self.z * other.x - self.x * other.z,
                       self.x * other.y - self.y * other.x)
@@ -128,97 +132,6 @@ impl std::ops::Neg for Tuple {
             w: -self.w,
         }
     }
-}
-
-pub type TupleBak = [f64; 4];
-
-pub fn tuple_is_point(t: TupleBak) -> bool {
-    t[3] == 1_f64
-}
-
-pub fn tuple_is_vector(t: TupleBak) -> bool {
-    t[3] == 0_f64
-}
-
-pub fn tuple_eq(a: TupleBak, b: TupleBak) -> bool {
-    f64_eq(a[0], b[0]) && f64_eq(a[1], b[1]) && f64_eq(a[2], b[2]) && a[3] == b[3]
-}
-
-pub fn tuple_add(a: TupleBak, b: TupleBak) -> TupleBak {
-    [
-        a[0] + b[0],
-        a[1] + b[1],
-        a[2] + b[2],
-        a[3] + b[3],
-    ]
-}
-
-pub fn tuple_subtract(a: TupleBak, b: TupleBak) -> TupleBak {
-    [
-        a[0] - b[0],
-        a[1] - b[1],
-        a[2] - b[2],
-        a[3] - b[3],
-    ]
-}
-
-pub fn tuple_mul_scalar(a: TupleBak, b: f64) -> TupleBak {
-    [
-        a[0] * b,
-        a[1] * b,
-        a[2] * b,
-        a[3] * b,
-    ]
-}
-
-pub fn tuple_div_scalar(a: TupleBak, b: f64) -> TupleBak {
-    [
-        a[0] / b,
-        a[1] / b,
-        a[2] / b,
-        a[3] / b,
-    ]
-}
-
-pub fn tuple_neg(a: TupleBak) -> TupleBak {
-    [
-        -a[0],
-        -a[1],
-        -a[2],
-        -a[3],
-    ]
-}
-
-fn tuple(x: f64, y: f64, z: f64, w: f64) -> TupleBak {
-    [x, y, z, w]
-}
-
-pub fn point(x: f64, y: f64, z: f64) -> TupleBak {
-    [x, y, z, 1_f64]
-}
-
-pub fn vector(x: f64, y: f64, z: f64) -> TupleBak {
-    [x, y, z, 0_f64]
-}
-
-pub fn normalize(v: TupleBak) -> TupleBak {
-    let mag = magnitude(v);
-
-    [v[0] / mag, v[1] / mag, v[2] / mag, v[3] / mag]
-}
-
-fn magnitude(v: TupleBak) -> f64 {
-    (v[0].powi(2) + v[1].powi(2) + v[2].powi(2) + v[3].powi(2)).sqrt()
-}
-
-pub fn dot(a: TupleBak, b: TupleBak) -> f64 {
-    a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3]
-}
-
-fn cross_vec(a: TupleBak, b: TupleBak) -> TupleBak {
-    vector(a[1] * b[2] - a[2] * b[1],
-           a[2] * b[0] - a[0] * b[2],
-           a[0] * b[1] - a[1] * b[0])
 }
 
 #[cfg(test)]
@@ -378,8 +291,8 @@ mod tests {
         let b = Tuple::vector(2_f64, 3_f64, 4_f64);
         let c = Tuple::vector(-1_f64, 2_f64, -1_f64);
         let d = Tuple::vector(1_f64, -2_f64, 1_f64);
-        let e = a.cross(&b);
-        let f = b.cross(&a);
+        let e = a.cross(b);
+        let f = b.cross(a);
 
         assert_eq!(e, c);
         assert_eq!(d, f);

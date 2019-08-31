@@ -1,5 +1,4 @@
 use crate::ray::Ray;
-use crate::tuple::{dot, point, tuple_subtract};
 
 pub struct Sphere {}
 
@@ -13,11 +12,11 @@ mod tests {
     use crate::intersection::intersect;
     use crate::ray::Ray;
     use crate::sphere::sphere;
-    use crate::tuple::{point, vector};
+    use crate::tuple::Tuple;
 
     #[test]
     fn a_ray_intersects_a_sphere_at_two_points() {
-        let r = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0)).unwrap();
+        let r = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0)).unwrap();
         let s = sphere();
         let xs = intersect(&s, &r).unwrap();
 
@@ -27,7 +26,7 @@ mod tests {
 
     #[test]
     fn a_ray_intersects_a_sphere_at_a_tangent() {
-        let r = Ray::new(point(0.0, 1.0, -5.0), vector(0.0, 0.0, 1.0)).unwrap();
+        let r = Ray::new(Tuple::point(0.0, 1.0, -5.0), Tuple::vector(0.0, 0.0, 1.0)).unwrap();
         let s = sphere();
         let xs = intersect(&s, &r).unwrap();
 
@@ -37,7 +36,7 @@ mod tests {
 
     #[test]
     fn a_ray_missing_a_sphere() {
-        let r = Ray::new(point(0.0, 2.0, -5.0), vector(0.0, 0.0, 1.0)).unwrap();
+        let r = Ray::new(Tuple::point(0.0, 2.0, -5.0), Tuple::vector(0.0, 0.0, 1.0)).unwrap();
         let s = sphere();
         let xs = intersect(&s, &r);
 
@@ -46,7 +45,7 @@ mod tests {
 
     #[test]
     fn a_ray_originates_inside_a_sphere() {
-        let r = Ray::new(point(0.0, 0.0, 0.0), vector(0.0, 0.0, 1.0)).unwrap();
+        let r = Ray::new(Tuple::point(0.0, 0.0, 0.0), Tuple::vector(0.0, 0.0, 1.0)).unwrap();
         let s = sphere();
         let xs = intersect(&s, &r).unwrap();
 
@@ -56,7 +55,7 @@ mod tests {
 
     #[test]
     fn a_sphere_is_behind_a_ray() {
-        let r = Ray::new(point(0.0, 0.0, 5.0), vector(0.0, 0.0, 1.0)).unwrap();
+        let r = Ray::new(Tuple::point(0.0, 0.0, 5.0), Tuple::vector(0.0, 0.0, 1.0)).unwrap();
         let s = sphere();
         let xs = intersect(&s, &r).unwrap();
 
