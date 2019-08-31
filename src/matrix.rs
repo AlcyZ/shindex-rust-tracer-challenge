@@ -1,4 +1,4 @@
-use crate::tuple::{dot, Tuple};
+use crate::tuple::Tuple;
 use crate::util::f64_eq;
 
 pub type Matrix4x4 = [[f64; 4]; 4];
@@ -37,15 +37,18 @@ fn mul(a: Matrix4x4, b: Matrix4x4) -> Matrix4x4 {
     m
 }
 
+fn dot_from_row(row: usize, m: Matrix4x4, t: Tuple) -> f64 {
+    let a = Tuple::new(m[row][0], m[row][1], m[row][2], m[row][3]);
+    a.dot(t)
+}
+
 pub fn mul_by_tuple(a: Matrix4x4, b: Tuple) -> Tuple {
-    let mut t = [0.0, 0.0, 0.0, 0.0];
-
-    for row in 0..4 {
-        let a = a[row];
-        t[row] = dot(a, b);
-    }
-
-    t
+    Tuple::new(
+        dot_from_row(0, a, b),
+        dot_from_row(1, a, b),
+        dot_from_row(2, a, b),
+        dot_from_row(3, a, b),
+    )
 }
 
 fn transpose(m: Matrix4x4) -> Matrix4x4 {
@@ -223,8 +226,8 @@ mod tests {
             [8.0, 6.0, 4.0, 1.0],
             [0.0, 0.0, 0.0, 1.0],
         ];
-        let b: Tuple = [1.0, 2.0, 3.0, 1.0];
-        let expected = [18.0, 24.0, 33.0, 1.0];
+        let b = Tuple::new(1.0, 2.0, 3.0, 1.0);
+        let expected = Tuple::new(18.0, 24.0, 33.0, 1.0);
         let actual = mul_by_tuple(a, b);
         assert_eq!(actual, expected)
     }
@@ -245,7 +248,7 @@ mod tests {
 
     #[test]
     fn multiply_tuple_by_identity() {
-        let a: Tuple = [1.0, 2.0, 3.0, 4.0];
+        let a = Tuple::new(1.0, 2.0, 3.0, 4.0);
         let actual = mul_by_tuple(MATRIX_4X4_IDENTITY, a);
         assert_eq!(actual, a)
     }

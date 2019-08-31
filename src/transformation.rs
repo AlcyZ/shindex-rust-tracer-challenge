@@ -72,37 +72,37 @@ mod tests {
 
     use crate::matrix::{inverse, mul_by_tuple};
     use crate::transformation::{rotation_x, rotation_y, rotation_z, scaling, shearing, translation};
-    use crate::tuple::{point, tuple_eq, tuple_is_point, vector};
+    use crate::tuple::Tuple;
 
     #[test]
     fn multiply_by_a_translation_matrix() {
         let transform = translation(5.0, -3.0, 2.0);
-        let p = point(-3.0, 4.0, 5.0);
+        let p = Tuple::point(-3.0, 4.0, 5.0);
 
-        let expected = point(2.0, 1.0, 7.0);
+        let expected = Tuple::point(2.0, 1.0, 7.0);
         let actual = mul_by_tuple(transform, p);
 
         assert_eq!(actual, expected);
-        assert!(tuple_is_point(actual))
+        assert!(actual.is_point())
     }
 
     #[test]
     fn multiply_by_inverse_of_a_translation_matrix() {
         let transform = translation(5.0, -3.0, 2.0);
         let inv = inverse(transform).unwrap();
-        let p = point(-3.0, 4.0, 5.0);
+        let p = Tuple::point(-3.0, 4.0, 5.0);
 
-        let expected = point(-8.0, 7.0, 3.0);
+        let expected = Tuple::point(-8.0, 7.0, 3.0);
         let actual = mul_by_tuple(inv, p);
 
         assert_eq!(actual, expected);
-        assert!(tuple_is_point(actual))
+        assert!(actual.is_point())
     }
 
     #[test]
     fn translation_does_not_affect_vectors() {
         let transform = translation(5.0, -3.0, 2.0);
-        let v = vector(-3.0, 4.0, 5.0);
+        let v = Tuple::vector(-3.0, 4.0, 5.0);
         let actual = mul_by_tuple(transform, v);
 
         assert_eq!(actual, v)
@@ -111,8 +111,8 @@ mod tests {
     #[test]
     fn scaling_matrix_applied_to_point() {
         let transform = scaling(2.0, 3.0, 4.0);
-        let p = point(-4.0, 6.0, 8.0);
-        let expected = point(-8.0, 18.0, 32.0);
+        let p = Tuple::point(-4.0, 6.0, 8.0);
+        let expected = Tuple::point(-8.0, 18.0, 32.0);
         let actual = mul_by_tuple(transform, p);
 
         assert_eq!(actual, expected)
@@ -121,8 +121,8 @@ mod tests {
     #[test]
     fn scaling_matrix_applied_to_vector() {
         let transform = scaling(2.0, 3.0, 4.0);
-        let v = vector(-4.0, 6.0, 8.0);
-        let expected = vector(-8.0, 18.0, 32.0);
+        let v = Tuple::vector(-4.0, 6.0, 8.0);
+        let expected = Tuple::vector(-8.0, 18.0, 32.0);
         let actual = mul_by_tuple(transform, v);
 
         assert_eq!(actual, expected)
@@ -132,9 +132,9 @@ mod tests {
     fn multiplying_by_inverse_of_scaling_matrix() {
         let transform = scaling(2.0, 3.0, 4.0);
         let inv = inverse(transform).unwrap();
-        let v = vector(-4.0, 6.0, 8.0);
+        let v = Tuple::vector(-4.0, 6.0, 8.0);
 
-        let expected = vector(-2.0, 2.0, 2.0);
+        let expected = Tuple::vector(-2.0, 2.0, 2.0);
         let actual = mul_by_tuple(inv, v);
 
         assert_eq!(actual, expected)
@@ -143,8 +143,8 @@ mod tests {
     #[test]
     fn reflection_is_scaling_by_negative_value() {
         let transform = scaling(-1.0, 1.0, 1.0);
-        let p = point(2.0, 3.0, 4.0);
-        let expected = point(-2.0, 3.0, 4.0);
+        let p = Tuple::point(2.0, 3.0, 4.0);
+        let expected = Tuple::point(-2.0, 3.0, 4.0);
         let actual = mul_by_tuple(transform, p);
 
         assert_eq!(actual, expected)
@@ -152,7 +152,7 @@ mod tests {
 
     #[test]
     fn rotating_point_around_x_axis() {
-        let p = point(0.0, 1.0, 0.0);
+        let p = Tuple::point(0.0, 1.0, 0.0);
         let half_quarter = rotation_x(PI / 4.0);
         let full_quarter = rotation_x(PI / 2.0);
 
@@ -160,16 +160,16 @@ mod tests {
         let actual_full = mul_by_tuple(full_quarter, p);
 
         let a = 2_f64.sqrt() / 2_f64;
-        let expected_half = point(0.0, a, a);
-        let expected_full = point(0.0, 0.0, 1.0);
+        let expected_half = Tuple::point(0.0, a, a);
+        let expected_full = Tuple::point(0.0, 0.0, 1.0);
 
         assert_eq!(actual_half, expected_half);
-        assert!(tuple_eq(actual_full, expected_full));
+        assert_eq!(actual_full, expected_full);
     }
 
     #[test]
     fn rotating_point_around_y_axis() {
-        let p = point(0.0, 0.0, 1.0);
+        let p = Tuple::point(0.0, 0.0, 1.0);
         let half_quarter = rotation_y(PI / 4.0);
         let full_quarter = rotation_y(PI / 2.0);
 
@@ -177,16 +177,16 @@ mod tests {
         let actual_full = mul_by_tuple(full_quarter, p);
 
         let a = 2_f64.sqrt() / 2_f64;
-        let expected_half = point(a, 0.0, a);
-        let expected_full = point(1.0, 0.0, 0.0);
+        let expected_half = Tuple::point(a, 0.0, a);
+        let expected_full = Tuple::point(1.0, 0.0, 0.0);
 
         assert_eq!(actual_half, expected_half);
-        assert!(tuple_eq(actual_full, expected_full));
+        assert_eq!(actual_full, expected_full);
     }
 
     #[test]
     fn rotating_point_around_z_axis() {
-        let p = point(0.0, 1.0, 0.0);
+        let p = Tuple::point(0.0, 1.0, 0.0);
         let half_quarter = rotation_z(PI / 4.0);
         let full_quarter = rotation_z(PI / 2.0);
 
@@ -194,16 +194,16 @@ mod tests {
         let actual_full = mul_by_tuple(full_quarter, p);
 
         let a = 2_f64.sqrt() / 2_f64;
-        let expected_half = point(-a, a, 0.0);
-        let expected_full = point(-1.0, 0.0, 0.0);
+        let expected_half = Tuple::point(-a, a, 0.0);
+        let expected_full = Tuple::point(-1.0, 0.0, 0.0);
 
         assert_eq!(actual_half, expected_half);
-        assert!(tuple_eq(actual_full, expected_full));
+        assert_eq!(actual_full, expected_full);
     }
 
     #[test]
     fn shearing_of_point() {
-        let p = point(2.0, 3.0, 4.0);
+        let p = Tuple::point(2.0, 3.0, 4.0);
         let t_xy = shearing(1.0, 0.0, 0.0, 0.0, 0.0, 0.0);
         let t_xz = shearing(0.0, 1.0, 0.0, 0.0, 0.0, 0.0);
         let t_yx = shearing(0.0, 0.0, 1.0, 0.0, 0.0, 0.0);
@@ -211,12 +211,12 @@ mod tests {
         let t_zx = shearing(0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
         let t_zy = shearing(0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
 
-        let e_xy = point(5.0, 3.0, 4.0);
-        let e_xz = point(6.0, 3.0, 4.0);
-        let e_yx = point(2.0, 5.0, 4.0);
-        let e_yz = point(2.0, 7.0, 4.0);
-        let e_zx = point(2.0, 3.0, 6.0);
-        let e_zy = point(2.0, 3.0, 7.0);
+        let e_xy = Tuple::point(5.0, 3.0, 4.0);
+        let e_xz = Tuple::point(6.0, 3.0, 4.0);
+        let e_yx = Tuple::point(2.0, 5.0, 4.0);
+        let e_yz = Tuple::point(2.0, 7.0, 4.0);
+        let e_zx = Tuple::point(2.0, 3.0, 6.0);
+        let e_zy = Tuple::point(2.0, 3.0, 7.0);
 
         assert_eq!(mul_by_tuple(t_xy, p), e_xy);
         assert_eq!(mul_by_tuple(t_xz, p), e_xz);

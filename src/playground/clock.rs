@@ -6,14 +6,14 @@ use crate::canvas::Canvas;
 use crate::color::Color;
 use crate::matrix::mul_by_tuple;
 use crate::transformation::rotation_y;
-use crate::tuple::point;
+use crate::tuple::Tuple;
 
 pub fn run(size: usize) {
-    let origin = point(0.0, 0.0, 0.0);
+    let origin = Tuple::point(0.0, 0.0, 0.0);
     let color = Color::new(0.0, 1.0, 0.0);
     let mut canvas = Canvas::new(size, size);
 
-    let clock_twelve = point(0.0, 0.0, 1.0);
+    let clock_twelve = Tuple::point(0.0, 0.0, 1.0);
 
     let rotation = rotation_y(PI / 6.0);
     let clock_radius = size as f64 * (3.0 / 8.0);
@@ -25,8 +25,10 @@ pub fn run(size: usize) {
         let rotation = rotation_y(i as f64 * PI / 6.0);
         let position = mul_by_tuple(rotation, clock_twelve);
 
-        let x = position[0] * clock_radius + size as f64 / 2.0;
-        let z = position[2] * clock_radius + size as f64 / 2.0;
+        let (_x, _, _z) = position.xyz();
+
+        let x = _x * clock_radius + size as f64 / 2.0;
+        let z = _z * clock_radius + size as f64 / 2.0;
 
         canvas.write_pixel(x as usize, z as usize, color);
         canvas.write_pixel(x as usize + 1, z as usize, color);

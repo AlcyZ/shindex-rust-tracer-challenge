@@ -1,13 +1,13 @@
 use crate::ray::Ray;
-use crate::tuple::{dot, point, tuple_subtract};
 use crate::sphere::Sphere;
+use crate::tuple::Tuple;
 
 pub fn intersect(sphere: &Sphere, ray: &Ray) -> Option<[f64; 2]> {
-    let sphere_to_ray = tuple_subtract(ray.origin, point(0.0, 0.0, 0.0));
+    let sphere_to_ray = ray.origin - Tuple::point(0.0, 0.0, 0.0);
 
-    let a = dot(ray.direction, ray.direction);
-    let b = 2.0 * dot(ray.direction, sphere_to_ray);
-    let c = dot(sphere_to_ray, sphere_to_ray) - 1.0;
+    let a = ray.direction.dot(ray.direction);
+    let b = 2.0 * ray.direction.dot(sphere_to_ray);
+    let c = sphere_to_ray.dot(sphere_to_ray) - 1.0;
 
     let discriminant = b.powi(2) - 4.0 * a * c;
 
