@@ -3,9 +3,15 @@ use crate::sphere::Sphere;
 use crate::tuple::Tuple;
 
 #[derive(Debug)]
-struct Intersection<'a> {
+pub struct Intersection<'a> {
     t: f64,
     object: &'a Sphere,
+}
+
+impl<'a> std::cmp::PartialEq for Intersection<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        self.t == other.t && self.object == other.object
+    }
 }
 
 impl<'a> Intersection<'a> {
@@ -15,12 +21,16 @@ impl<'a> Intersection<'a> {
 }
 
 pub struct Intersections<'a> {
-    items: [Intersection<'a>; 2]
+    items: Vec<Intersection<'a>>
 }
 
 impl<'a> Intersections<'a> {
-    fn new(i1: Intersection<'a>, i2: Intersection<'a>) -> Intersections<'a> {
-        Intersections { items: [i1, i2] }
+    fn new() -> Intersections<'a> {
+        Intersections { items: vec![] }
+    }
+
+    fn add(&mut self, i: Intersection<'a>) {
+        self.items.push(i)
     }
 
     fn count(&self) -> usize {
@@ -46,14 +56,42 @@ pub fn intersect<'a>(sphere: &'a Sphere, ray: &Ray) -> Option<Intersections<'a>>
 
     let i1 = Intersection::new(t1, &sphere);
     let i2 = Intersection::new(t2, &sphere);
-    let mut intersections = Intersections::new(i1, i2);
+    let mut xs = Intersections::new();
+    xs.add(i1);
+    xs.add(i2);
 
-    Some(intersections)
+    Some(xs)
+}
+
+pub fn hit<'a>(xs: &'a Intersections) -> Option<&'a Intersection<'a>> {
+    if let None = xs.items.first() {
+        return None;
+    }
+    let mut lowest = xs.items.first().unwrap();
+
+
+    for asd in xs.items.iter() {
+        let t = asd.t;
+
+        if t > 0_f64 && lowest.t < 0_f64 {
+            lowest = asd;
+        }
+
+        if t > 0_f64 && t < lowest.t {
+            lowest = asd;
+        }
+    }
+
+    if lowest.t == -1_f64 {
+        None
+    } else {
+        Some(lowest)
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::intersection::{intersect, Intersection, Intersections};
+    use crate::intersection::{hit, intersect, Intersection, Intersections};
     use crate::ray::Ray;
     use crate::sphere::sphere;
     use crate::tuple::Tuple;
@@ -121,8 +159,9 @@ mod tests {
         let s = sphere();
         let i1 = Intersection::new(1.0, &s);
         let i2 = Intersection::new(2.0, &s);
-
-        let mut xs = Intersections::new(i1, i2);
+        let mut xs = Intersections::new();
+        xs.add(i1);
+        xs.add(i2);
 
         assert_eq!(xs.count(), 2);
         assert_eq!(xs.items[0].t, 1.0);
@@ -140,5 +179,61 @@ mod tests {
         assert_eq!(xs.count(), 2);
         assert_eq!(xs.items[0].object, &sphere);
         assert_eq!(xs.items[1].object, &sphere)
+    }
+
+    #[test]
+    fn hit_when_all_intersections_have_positive_t() {
+        let sphere = sphere();
+        let i1 = Intersection::new(1.0, &sphere);
+        let i2 = Intersection::new(2.0, &sphere);
+        let mut xs = Intersections::new();
+        xs.add(i1);
+        xs.add(i2);
+
+        let actual = hit(&xs).unwrap();
+        assert_eq!(actual, &Intersection::new(1.0, &sphere))
+    }
+
+    #[test]
+    fn hit_when_some_intersections_have_negative_t() {
+        let sphere = sphere();
+        let i1 = Intersection::new(-1.0, &sphere);
+        let i2 = Intersection::new(1.0, &sphere);
+        let mut xs = Intersections::new();
+        xs.add(i1);
+        xs.add(i2);
+
+        let actual = hit(&xs).unwrap();
+        assert_eq!(actual, &Intersection::new(1.0, &sphere))
+    }
+
+    #[test]
+    fn hit_when_all_intersections_have_negative_t() {
+        let sphere = sphere();
+        let i1 = Intersection::new(-1.0, &sphere);
+        let i2 = Intersection::new(-2.0, &sphere);
+        let mut xs = Intersections::new();
+        xs.add(i1);
+        xs.add(i2);
+
+        let actual = hit(&xs);
+        assert!(actual.is_none())
+    }
+
+    #[test]
+    fn hit_is_always_lowest_non_negative_value() {
+        let sphere = sphere();
+        let i1 = Intersection::new(5.0, &sphere);
+        let i2 = Intersection::new(7.0, &sphere);
+        let i3 = Intersection::new(-3.0, &sphere);
+        let i4 = Intersection::new(2.0, &sphere);
+        let mut xs = Intersections::new();
+        xs.add(i1);
+        xs.add(i2);
+        xs.add(i3);
+        xs.add(i4);
+
+        let actual = hit(&xs).unwrap();
+        assert_eq!(actual, &Intersection::new(2.0, &sphere))
     }
 }
