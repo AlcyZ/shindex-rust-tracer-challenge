@@ -1,6 +1,9 @@
 use crate::ray::RayError::{DirectionIsNotVector, OriginIsNotPoint};
 use crate::tuple::Tuple;
+use crate::matrix::{Matrix4x4, mul_by_tuple};
+use crate::transformation::{translation, scaling};
 
+#[derive(Debug)]
 pub struct Ray {
     pub origin: Tuple,
     pub direction: Tuple,
@@ -23,6 +26,10 @@ impl Ray {
 
         Ok(Ray { origin, direction })
     }
+
+    pub fn transform(&self, m: Matrix4x4) -> Ray {
+        Ray::new(mul_by_tuple(m, self.origin), mul_by_tuple(m, self.direction)).unwrap()
+    }
 }
 
 fn position(r: &Ray, time: f64) -> Tuple {
@@ -34,6 +41,7 @@ fn position(r: &Ray, time: f64) -> Tuple {
 mod tests {
     use crate::ray::{position, Ray};
     use crate::tuple::Tuple;
+    use crate::transformation::{translation, scaling};
 
     #[test]
     fn creating_and_querying_a_ray() {
@@ -59,5 +67,24 @@ mod tests {
         assert_eq!(position(&r, 1.0), expected_b);
         assert_eq!(position(&r, -1.0), expected_c);
         assert_eq!(position(&r, 2.5), expected_d);
+    }
+
+    #[test]
+    fn translating_a_ray() {
+        let r = Ray::new(Tuple::point(1.0, 2.0, 3.0), Tuple::vector(0.0, 1.0, 0.0)).unwrap();
+        let r2 = r.transform(translation(3.0, 4.0, 5.0));
+
+        assert_eq!(r2.origin, Tuple::point(4.0, 6.0, 8.0));
+        assert_eq!(r2.direction, Tuple::vector(0.0, 1.0, 0.0));
+    }
+
+
+    #[test]
+    fn scaling_a_ray() {
+        let r = Ray::new(Tuple::point(1.0, 2.0, 3.0), Tuple::vector(0.0, 1.0, 0.0)).unwrap();
+        let r2 = r.transform(scaling(2.0, 3.0, 4.0));
+
+        assert_eq!(r2.origin, Tuple::point(2.0, 6.0, 12.0));
+        assert_eq!(r2.direction, Tuple::vector(0.0, 3.0, 0.0));
     }
 }
