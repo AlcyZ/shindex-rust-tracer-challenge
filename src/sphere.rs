@@ -4,7 +4,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 static SPHERE_IDS: AtomicUsize = AtomicUsize::new(0);
 
-#[derive(Debug)]
+// clone feels bad with the id .. but currently i don't now any better way to support multi threading
+#[derive(Debug, Clone)]
 pub struct Sphere {
     id: usize,
     transform: Matrix4x4,

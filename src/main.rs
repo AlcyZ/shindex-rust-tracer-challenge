@@ -1,5 +1,6 @@
 use crate::playground::clock::run as clock_run;
 use crate::playground::projectile::run as projectile_run;
+use crate::playground::circle::run as circle_run;
 
 mod tuple;
 mod color;
@@ -13,6 +14,8 @@ mod util;
 mod playground;
 
 fn main() {
-    clock_run(600);
-    projectile_run()
+//    clock_run(600);
+//    projectile_run()
+
+    circle_run();
 }
