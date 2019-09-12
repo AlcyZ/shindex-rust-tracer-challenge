@@ -51,7 +51,7 @@ pub fn mul_by_tuple(a: Matrix4x4, b: Tuple) -> Tuple {
     )
 }
 
-fn transpose(m: Matrix4x4) -> Matrix4x4 {
+pub fn transpose(m: Matrix4x4) -> Matrix4x4 {
     let mut new: Matrix4x4 = [[0.0; 4]; 4];
 
     for row in 0..4 {
