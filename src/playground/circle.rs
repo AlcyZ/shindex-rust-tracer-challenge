@@ -10,22 +10,49 @@ use std::time::Instant;
 use crate::playground::utility::save_ppm;
 use std::thread::Thread;
 use std::sync::mpsc;
+use crate::matrix::{Matrix4x4, mul};
+use crate::transformation::{scaling, rotation_z, shearing};
+use std::f64::consts::PI;
 
 pub fn run() {
     let now = Instant::now();
+    let canvas_size = 200;
 
+    let shrink_y = scaling(1.0, 0.5, 1.0);
+    let shrink_x = scaling(0.5, 1.0, 1.0);
+    let shrink_x_and_rotate = mul(rotation_z(PI / 2.0), scaling(0.5, 1.0, 1.0));
+    let shrink_x_and_skew = mul(shearing(1.0, 0.0, 0.0, 0.0, 0.0, 0.0), scaling(0.5, 1.0, 1.0));
+
+    let handle_a = std::thread::spawn(move || process(canvas_size, None, "default"));
+    let handle_b = std::thread::spawn(move || process(canvas_size, Some(shrink_y), "shrink_y"));
+    let handle_c = std::thread::spawn(move || process(canvas_size, Some(shrink_x), "shrink_x"));
+    let handle_d = std::thread::spawn(move || process(canvas_size, Some(shrink_x_and_rotate), "shrink_x_and_rotate"));
+    let handle_e = std::thread::spawn(move || process(canvas_size, Some(shrink_x_and_skew), "shrink_x_and_skew"));
+
+    handle_a.join().unwrap_or_default();
+    handle_b.join().unwrap_or_default();
+    handle_c.join().unwrap_or_default();
+    handle_d.join().unwrap_or_default();
+    handle_e.join().unwrap_or_default();
+
+    println!("Rendering time: {:?}\nSize: {}px", now.elapsed(), canvas_size);
+}
+
+fn process(canvas_size: usize, transformation: Option<Matrix4x4>, name: &str) {
     // setup world stuff
-    let canvas_size = 500;
     let mut canvas = Canvas::new(canvas_size, canvas_size);
     let ray_origin = Tuple::point(0.0, 0.0, -5.0);
     let wall_z = 10.0;
     let wall_size = 7.0;
     let pixel_size = wall_size / canvas_size as f64;
     let half = wall_size / 2.0;
-
     // hit color and sphere setup
     let color = Color::new(0.0, 1.0, 0.0);
-    let shape = Sphere::new();
+    let mut shape = Sphere::new();
+
+    if let Some(t) = transformation {
+        shape.transform(t);
+    }
 
     let (tx, rx) = mpsc::channel();
 
@@ -63,7 +90,6 @@ pub fn run() {
         }
     }
 
-    save_ppm(canvas);
-
-    println!("Rendering time: {:?}\nSize: {}px", now.elapsed(), canvas_size);
+    let img_name = format!("circle_{}", name);
+    save_ppm(canvas, &img_name);
 }

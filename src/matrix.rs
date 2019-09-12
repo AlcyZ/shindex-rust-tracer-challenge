@@ -24,7 +24,7 @@ pub fn matrix_4x4_eq(a: Matrix4x4, b: Matrix4x4) -> bool {
     true
 }
 
-fn mul(a: Matrix4x4, b: Matrix4x4) -> Matrix4x4 {
+pub fn mul(a: Matrix4x4, b: Matrix4x4) -> Matrix4x4 {
     let mut m: Matrix4x4 = [[0.0; 4]; 4];
     for row in 0..4 {
         for col in 0..4 {
