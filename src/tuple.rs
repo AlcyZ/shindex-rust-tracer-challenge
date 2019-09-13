@@ -17,6 +17,10 @@ impl Tuple {
         Tuple::new(x, y, z, 1_f64)
     }
 
+    pub fn origin_point() -> Tuple {
+        Tuple::point(0.0, 0.0, 0.0)
+    }
+
     pub fn vector(x: f64, y: f64, z: f64) -> Tuple {
         Tuple::new(x, y, z, 0_f64)
     }
@@ -35,6 +39,10 @@ impl Tuple {
 
     pub fn magnitude(&self) -> f64 {
         (self.x.powi(2) + self.y.powi(2) + self.z.powi(2) + self.w.powi(2)).sqrt()
+    }
+
+    pub fn reflect(&self, other: Tuple) -> Tuple {
+        return *self - other * 2.0 * self.dot(other);
     }
 
     pub fn normalize(&self) -> Tuple {
@@ -296,5 +304,24 @@ mod tests {
 
         assert_eq!(e, c);
         assert_eq!(d, f);
+    }
+
+    #[test]
+    fn reflecting_a_vector_approaching_at_45_degree() {
+        let v = Tuple::vector(1.0, -1.0, 0.0);
+        let n = Tuple::vector(0.0, 1.0, 0.0);
+        let r = v.reflect(n);
+
+        assert_eq!(r, Tuple::vector(1.0, 1.0, 0.0));
+    }
+
+    #[test]
+    fn reflecting_a_vector_off_a_slanted_surface() {
+        let a = 2_f64.sqrt() / 2.0;
+        let v = Tuple::vector(0.0, -1.0, 0.0);
+        let n = Tuple::vector(a, a, 0.0);
+        let r = v.reflect(n);
+
+        assert_eq!(r, Tuple::vector(1.0, 0.0, 0.0));
     }
 }

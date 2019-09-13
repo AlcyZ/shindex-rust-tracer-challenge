@@ -1,6 +1,8 @@
-use crate::ray::Ray;
-use crate::matrix::{Matrix4x4, MATRIX_4X4_IDENTITY, inverse, mul, mul_by_tuple, transpose};
 use std::sync::atomic::{AtomicUsize, Ordering};
+
+use crate::material::Material;
+use crate::matrix::{inverse, Matrix4x4, MATRIX_4X4_IDENTITY, mul, mul_by_tuple, transpose};
+use crate::ray::Ray;
 use crate::tuple::Tuple;
 
 static SPHERE_IDS: AtomicUsize = AtomicUsize::new(0);
@@ -10,6 +12,7 @@ static SPHERE_IDS: AtomicUsize = AtomicUsize::new(0);
 pub struct Sphere {
     id: usize,
     transform: Matrix4x4,
+    material: Material,
 }
 
 #[derive(Debug)]
@@ -21,7 +24,7 @@ pub enum SphereError {
 impl Sphere {
     pub fn new() -> Sphere {
         let id = SPHERE_IDS.fetch_add(1, Ordering::SeqCst);
-        Sphere { id, transform: MATRIX_4X4_IDENTITY }
+        Sphere { id, transform: MATRIX_4X4_IDENTITY, material: Material::default() }
     }
 
     pub fn transform(&mut self, t: Matrix4x4) {
@@ -46,6 +49,10 @@ impl Sphere {
 
         Ok(world_normal.normalize())
     }
+
+    pub fn apply_mat(&mut self, mat: Material) {
+        self.material = mat
+    }
 }
 
 impl std::cmp::PartialEq for Sphere {
@@ -56,13 +63,16 @@ impl std::cmp::PartialEq for Sphere {
 
 #[cfg(test)]
 mod tests {
-    use crate::matrix::{MATRIX_4X4_IDENTITY, mul};
-    use crate::sphere::Sphere;
-    use crate::transformation::{translation, scaling, rotation_z};
-    use crate::ray::Ray;
-    use crate::tuple::Tuple;
-    use crate::intersection::intersect;
     use std::f64::consts::PI;
+
+    use crate::color::Color;
+    use crate::intersection::intersect;
+    use crate::material::Material;
+    use crate::matrix::{MATRIX_4X4_IDENTITY, mul};
+    use crate::ray::Ray;
+    use crate::sphere::Sphere;
+    use crate::transformation::{rotation_z, scaling, translation};
+    use crate::tuple::Tuple;
 
     #[test]
     fn a_spheres_default_transformation() {
@@ -168,5 +178,18 @@ mod tests {
         let n = sphere.normal_at(Tuple::point(0.0, a, -a)).unwrap();
 
         assert_eq!(n, Tuple::vector(0.0, 0.97014, -0.24254))
+    }
+
+
+    #[test]
+    fn material_assignment() {
+        let sphere_one = Sphere::new();
+        let mut sphere_two = Sphere::new();
+        let m = Material::new(Color::black(), 1.0, 1.0, 1.0, 100.0).unwrap();
+        let m2 = Material::new(Color::black(), 1.0, 1.0, 1.0, 100.0).unwrap();
+        sphere_two.apply_mat(m);
+
+        assert_eq!(sphere_one.material, Material::default());
+        assert_eq!(sphere_two.material, m2);
     }
 }

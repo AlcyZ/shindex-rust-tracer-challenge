@@ -1,7 +1,7 @@
-use crate::ray::RayError::{DirectionIsNotVector, OriginIsNotPoint};
-use crate::tuple::Tuple;
 use crate::matrix::{Matrix4x4, mul_by_tuple};
-use crate::transformation::{translation, scaling};
+use crate::ray::RayError::{DirectionIsNotVector, OriginIsNotPoint};
+use crate::transformation::{scaling, translation};
+use crate::tuple::Tuple;
 
 #[derive(Debug)]
 pub struct Ray {
@@ -40,8 +40,8 @@ fn position(r: &Ray, time: f64) -> Tuple {
 #[cfg(test)]
 mod tests {
     use crate::ray::{position, Ray};
+    use crate::transformation::{scaling, translation};
     use crate::tuple::Tuple;
-    use crate::transformation::{translation, scaling};
 
     #[test]
     fn creating_and_querying_a_ray() {

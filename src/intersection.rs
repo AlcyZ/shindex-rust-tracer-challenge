@@ -1,7 +1,7 @@
+use crate::matrix::inverse;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::tuple::Tuple;
-use crate::matrix::inverse;
 
 #[derive(Debug)]
 pub struct Intersection<'a> {

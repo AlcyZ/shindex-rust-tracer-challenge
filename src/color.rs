@@ -1,13 +1,17 @@
+use crate::util::f64_eq;
+
 #[derive(Debug, Clone, Copy)]
 pub struct Color {
-    pub(crate) red: f64,
-    pub(crate) green: f64,
-    pub(crate) blue: f64,
+    pub red: f64,
+    pub green: f64,
+    pub blue: f64,
 }
 
 impl std::cmp::PartialEq for Color {
     fn eq(&self, other: &Self) -> bool {
-        self.red == other.red && self.green == other.green && self.blue == other.blue
+        f64_eq(self.red, other.red) &&
+            f64_eq(self.green, other.green) &&
+            f64_eq(self.blue, other.blue)
     }
 }
 
@@ -79,6 +83,9 @@ impl Color {
 
     pub fn black() -> Color {
         Color { red: 0_f64, green: 0_f64, blue: 0_f64 }
+    }
+    pub fn white() -> Color {
+        Color { red: 1_f64, green: 1_f64, blue: 1_f64 }
     }
 
     pub fn to_ppm_data(&self) -> String {

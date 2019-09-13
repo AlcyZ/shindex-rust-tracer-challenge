@@ -1,18 +1,19 @@
-use crate::canvas::Canvas;
-use crate::tuple::Tuple;
-use crate::color::Color;
-use crate::sphere::Sphere;
-use crate::ray::Ray;
-use crate::intersection::intersect;
+use std::f64::consts::PI;
 use std::fs::File;
 use std::io::Write;
-use std::time::Instant;
-use crate::playground::utility::save_ppm;
-use std::thread::Thread;
 use std::sync::mpsc;
+use std::thread::Thread;
+use std::time::Instant;
+
+use crate::canvas::Canvas;
+use crate::color::Color;
+use crate::intersection::intersect;
 use crate::matrix::{Matrix4x4, mul};
-use crate::transformation::{scaling, rotation_z, shearing};
-use std::f64::consts::PI;
+use crate::playground::utility::save_ppm;
+use crate::ray::Ray;
+use crate::sphere::Sphere;
+use crate::transformation::{rotation_z, scaling, shearing};
+use crate::tuple::Tuple;
 
 pub fn run() {
     let now = Instant::now();

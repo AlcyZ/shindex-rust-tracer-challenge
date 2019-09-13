@@ -1,6 +1,7 @@
-use crate::canvas::Canvas;
 use std::fs::File;
 use std::io::Write;
+
+use crate::canvas::Canvas;
 
 pub fn save_ppm(canvas: Canvas, name: &str) {
     let ppm = canvas.to_ppm();
