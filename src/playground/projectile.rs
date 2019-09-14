@@ -59,5 +59,5 @@ pub fn run() {
     let mut f = File::create("./PuttingItTogether/projectile.ppm").expect("Unable to create file");
     f.write_all(ppm.as_bytes()).expect("Unable to write data");
 
-    println!("{:?}", now.elapsed());
+    println!("Projectile -> Rendering time: {:?}\nSize: width: 900px, height: 550", now.elapsed());
 }

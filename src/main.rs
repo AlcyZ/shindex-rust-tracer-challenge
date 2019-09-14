@@ -17,9 +17,11 @@ mod util;
 mod playground;
 
 fn main() {
-//    clock_run(600);
-//    projectile_run()
-//    circle_run();
-
+    projectile_run();
+    println!();
+    clock_run();
+    println!();
+    circle_run();
+    println!();
     sphere_run();
 }

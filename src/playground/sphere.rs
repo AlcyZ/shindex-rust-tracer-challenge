@@ -34,7 +34,7 @@ pub fn run() {
     handle_d.join().unwrap_or_default();
     handle_e.join().unwrap_or_default();
 
-    println!("Rendering time: {:?}\nSize: {}px", now.elapsed(), canvas_size);
+    println!("Sphere -> Rendering time: {:?}\nSize: {}px", now.elapsed(), canvas_size);
 }
 
 

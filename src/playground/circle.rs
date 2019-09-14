@@ -17,7 +17,7 @@ use crate::tuple::Tuple;
 
 pub fn run() {
     let now = Instant::now();
-    let canvas_size = 200;
+    let canvas_size = 2048;
 
     let shrink_y = scaling(1.0, 0.5, 1.0);
     let shrink_x = scaling(0.5, 1.0, 1.0);
@@ -36,7 +36,7 @@ pub fn run() {
     handle_d.join().unwrap_or_default();
     handle_e.join().unwrap_or_default();
 
-    println!("Rendering time: {:?}\nSize: {}px", now.elapsed(), canvas_size);
+    println!("Circle -> Rendering time: {:?}\nSize: {}px", now.elapsed(), canvas_size);
 }
 
 fn process(canvas_size: usize, transformation: Option<Matrix4x4>, name: &str) {
