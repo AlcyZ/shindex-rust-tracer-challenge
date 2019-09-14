@@ -1,10 +1,11 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 
+use crate::color::Color;
+use crate::intersection::{Intersection, Intersections};
 use crate::material::Material;
-use crate::matrix::{inverse, Matrix4x4, MATRIX_4X4_IDENTITY, mul, mul_by_tuple, transpose};
+use crate::matrix::{inverse, Matrix4x4, MATRIX_4X4_IDENTITY, mul_by_tuple, transpose};
 use crate::ray::Ray;
 use crate::tuple::Tuple;
-use crate::color::Color;
 
 static SPHERE_IDS: AtomicUsize = AtomicUsize::new(0);
 
@@ -26,6 +27,32 @@ impl Sphere {
     pub fn new() -> Sphere {
         let id = SPHERE_IDS.fetch_add(1, Ordering::SeqCst);
         Sphere { id, transform: MATRIX_4X4_IDENTITY, material: Material::default() }
+    }
+
+    pub fn intersect(&self, ray: &Ray) -> Option<Intersections> {
+        let ray = ray.transform(inverse(self.transformation())?);
+
+        let sphere_to_ray = ray.origin - Tuple::point(0.0, 0.0, 0.0);
+
+        let a = ray.direction.dot(ray.direction);
+        let b = 2.0 * ray.direction.dot(sphere_to_ray);
+        let c = sphere_to_ray.dot(sphere_to_ray) - 1.0;
+
+        let discriminant = b.powi(2) - 4.0 * a * c;
+
+        if discriminant < 0.0 {
+            return None;
+        }
+
+        let t1 = (-b - discriminant.sqrt()) / (2.0 * a);
+        let t2 = (-b + discriminant.sqrt()) / (2.0 * a);
+
+        let i1 = Intersection::new(t1, self);
+        let i2 = Intersection::new(t2, self);
+        let mut xs = Intersections::new(i1);
+        xs.add(i2);
+
+        Some(xs)
     }
 
     pub fn transform(&mut self, t: Matrix4x4) {
@@ -75,7 +102,6 @@ mod tests {
     use std::f64::consts::PI;
 
     use crate::color::Color;
-    use crate::intersection::intersect;
     use crate::material::Material;
     use crate::matrix::{MATRIX_4X4_IDENTITY, mul};
     use crate::ray::Ray;
@@ -88,6 +114,69 @@ mod tests {
         let s = Sphere::new();
 
         assert_eq!(s.transform, MATRIX_4X4_IDENTITY)
+    }
+
+
+    #[test]
+    fn a_ray_intersects_a_sphere_at_two_points() {
+        let r = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0)).unwrap();
+        let s = Sphere::new();
+        let xs = s.intersect(&r).unwrap();
+
+        assert_eq!(4.0, xs.get(0).unwrap().t());
+        assert_eq!(6.0, xs.get(1).unwrap().t());
+    }
+
+    #[test]
+    fn a_ray_intersects_a_sphere_at_a_tangent() {
+        let r = Ray::new(Tuple::point(0.0, 1.0, -5.0), Tuple::vector(0.0, 0.0, 1.0)).unwrap();
+        let s = Sphere::new();
+        let xs = s.intersect(&r).unwrap();
+
+        assert_eq!(5.0, xs.get(0).unwrap().t());
+        assert_eq!(5.0, xs.get(1).unwrap().t());
+    }
+
+    #[test]
+    fn a_ray_missing_a_sphere() {
+        let r = Ray::new(Tuple::point(0.0, 2.0, -5.0), Tuple::vector(0.0, 0.0, 1.0)).unwrap();
+        let s = Sphere::new();
+        let xs = s.intersect(&r);
+
+        assert!(xs.is_none())
+    }
+
+    #[test]
+    fn a_ray_originates_inside_a_sphere() {
+        let r = Ray::new(Tuple::point(0.0, 0.0, 0.0), Tuple::vector(0.0, 0.0, 1.0)).unwrap();
+        let s = Sphere::new();
+        let xs = s.intersect(&r).unwrap();
+
+        assert_eq!(-1.0, xs.get(0).unwrap().t());
+        assert_eq!(1.0, xs.get(1).unwrap().t());
+    }
+
+    #[test]
+    fn a_sphere_is_behind_a_ray() {
+        let r = Ray::new(Tuple::point(0.0, 0.0, 5.0), Tuple::vector(0.0, 0.0, 1.0)).unwrap();
+        let s = Sphere::new();
+        let xs = s.intersect(&r).unwrap();
+
+        assert_eq!(-6.0, xs.get(0).unwrap().t());
+        assert_eq!(-4.0, xs.get(1).unwrap().t());
+    }
+
+    #[test]
+    fn intersect_sets_the_object_on_the_intersection() {
+        let ray = Ray::new(
+            Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0),
+        ).unwrap();
+        let sphere = Sphere::new();
+        let xs = sphere.intersect(&ray).unwrap();
+
+        assert_eq!(xs.count(), 2);
+        assert_eq!(xs.get(0).unwrap().object(), &sphere);
+        assert_eq!(xs.get(1).unwrap().object(), &sphere)
     }
 
     #[test]
@@ -105,7 +194,7 @@ mod tests {
         let mut s = Sphere::new();
         s.transform(scaling(2.0, 2.0, 2.0));
 
-        let xs = intersect(&s, &r).unwrap();
+        let xs = s.intersect(&r).unwrap();
 
         assert_eq!(xs.count(), 2);
         assert_eq!(xs.get(0).unwrap().t(), 3.0);
@@ -118,7 +207,7 @@ mod tests {
         let mut s = Sphere::new();
         s.transform(scaling(5.0, 0.0, 0.0));
 
-        let xs = intersect(&s, &r);
+        let xs = s.intersect(&r);
 
         assert!(xs.is_none());
     }

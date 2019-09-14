@@ -1,13 +1,9 @@
 use std::f64::consts::PI;
-use std::fs::File;
-use std::io::Write;
 use std::sync::mpsc;
-use std::thread::Thread;
 use std::time::Instant;
 
 use crate::canvas::Canvas;
 use crate::color::Color;
-use crate::intersection::intersect;
 use crate::matrix::{Matrix4x4, mul};
 use crate::playground::utility::save_ppm;
 use crate::ray::Ray;
@@ -75,7 +71,7 @@ fn process(canvas_size: usize, transformation: Option<Matrix4x4>, name: &str) {
 
                 let r = Ray::new(ray_origin, (position - ray_origin).normalize()).unwrap();
 
-                if let Some(xs) = intersect(&sphere_clone, &r) {
+                if let Some(_) = sphere_clone.intersect(&r) {
                     tx1.send(Some((x, y))).unwrap();
                 }
             }

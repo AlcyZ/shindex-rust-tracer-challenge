@@ -410,6 +410,7 @@ mod tests {
             [-0.52256, -0.81391, -0.30075, 0.30639],
         ];
 
+        assert!(matrix_4x4_eq(b, expected), "{:#?} = {:#?}", b, expected);
         assert_eq!(determinant_4x4(a), 532_f64);
         assert_eq!(cofactor_4x4(a, 2, 3), -160_f64);
         assert_eq!(b[3][2], -160_f64 / 532_f64);

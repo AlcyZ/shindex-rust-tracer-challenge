@@ -87,12 +87,6 @@ impl Color {
     pub fn white() -> Color {
         Color { red: 1_f64, green: 1_f64, blue: 1_f64 }
     }
-
-    pub fn to_ppm_data(&self) -> String {
-        let data = [col_to_string(&self.red), col_to_string(&self.green), col_to_string(&self.blue)];
-
-        data.join(" ")
-    }
 }
 
 #[cfg(test)]

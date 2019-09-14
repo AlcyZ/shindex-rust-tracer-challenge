@@ -1,6 +1,4 @@
 use crate::matrix::{Matrix4x4, mul_by_tuple};
-use crate::ray::RayError::{DirectionIsNotVector, OriginIsNotPoint};
-use crate::transformation::{scaling, translation};
 use crate::tuple::Tuple;
 
 #[derive(Debug)]
@@ -31,7 +29,7 @@ impl Ray {
         Ray::new(mul_by_tuple(m, self.origin), mul_by_tuple(m, self.direction)).unwrap()
     }
 
-    pub fn position (&self, time: f64) -> Tuple {
+    pub fn position(&self, time: f64) -> Tuple {
         self.origin + self.direction * time
     }
 }
@@ -39,7 +37,7 @@ impl Ray {
 
 #[cfg(test)]
 mod tests {
-    use crate::ray::{Ray};
+    use crate::ray::Ray;
     use crate::transformation::{scaling, translation};
     use crate::tuple::Tuple;
 
@@ -63,10 +61,10 @@ mod tests {
         let expected_c = Tuple::point(1.0, 3.0, 4.0);
         let expected_d = Tuple::point(4.5, 3.0, 4.0);
 
-        assert_eq!(position(&r, 0.0), expected_a);
-        assert_eq!(position(&r, 1.0), expected_b);
-        assert_eq!(position(&r, -1.0), expected_c);
-        assert_eq!(position(&r, 2.5), expected_d);
+        assert_eq!(r.position(0.0), expected_a);
+        assert_eq!(r.position(1.0), expected_b);
+        assert_eq!(r.position(-1.0), expected_c);
+        assert_eq!(r.position(2.5), expected_d);
     }
 
     #[test]

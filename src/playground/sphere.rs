@@ -4,7 +4,6 @@ use std::time::Instant;
 
 use crate::canvas::Canvas;
 use crate::color::Color;
-use crate::intersection::{hit, intersect};
 use crate::light::PointLight;
 use crate::matrix::{Matrix4x4, mul};
 use crate::playground::utility::save_ppm;
@@ -78,8 +77,10 @@ fn process(canvas_size: usize, transformation: Option<Matrix4x4>, name: &str) {
 
                 let r = Ray::new(ray_origin, (position - ray_origin).normalize()).unwrap();
 
-                if let Some(xs) = intersect(&sphere_clone, &r) {
-                    let hit = hit(&xs).unwrap();
+                if let Some(xs) = sphere_clone.intersect(&r) {
+                    // the unwrap below is safe, because the current sample scene didn't have any
+                    // items behind the eye.
+                    let hit = xs.hit().unwrap();
                     let point = r.position(hit.t());
                     let normal = hit.object().normal_at(point).unwrap(); // Todo: Keep an eye on this unwrap
                     let eye = -r.direction;

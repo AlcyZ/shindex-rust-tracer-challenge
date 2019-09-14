@@ -1,6 +1,4 @@
 use std::f64::consts::PI;
-use std::fs::File;
-use std::io::Write;
 use std::time::Instant;
 
 use crate::canvas::Canvas;
@@ -14,16 +12,13 @@ pub fn run() {
     let now = Instant::now();
     let canvas_size = 2048;
 
-    let origin = Tuple::point(0.0, 0.0, 0.0);
     let color = Color::new(0.0, 1.0, 0.0);
     let mut canvas = Canvas::new(canvas_size, canvas_size);
 
     let clock_twelve = Tuple::point(0.0, 0.0, 1.0);
 
-    let rotation = rotation_y(PI / 6.0);
     let clock_radius = canvas_size as f64 * (3.0 / 8.0);
 
-    let mut next = clock_twelve;
     for i in 1..13 {
         let rotation = rotation_y(i as f64 * PI / 6.0);
         let position = mul_by_tuple(rotation, clock_twelve);
