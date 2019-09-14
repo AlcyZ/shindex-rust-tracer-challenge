@@ -4,6 +4,7 @@ use crate::material::Material;
 use crate::matrix::{inverse, Matrix4x4, MATRIX_4X4_IDENTITY, mul, mul_by_tuple, transpose};
 use crate::ray::Ray;
 use crate::tuple::Tuple;
+use crate::color::Color;
 
 static SPHERE_IDS: AtomicUsize = AtomicUsize::new(0);
 
@@ -50,8 +51,16 @@ impl Sphere {
         Ok(world_normal.normalize())
     }
 
+    pub fn change_color(&mut self, color: Color) {
+        self.material.change_color(color)
+    }
+
     pub fn apply_mat(&mut self, mat: Material) {
         self.material = mat
+    }
+
+    pub fn material(&self) -> &Material {
+        &self.material
     }
 }
 

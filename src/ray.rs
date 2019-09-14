@@ -30,16 +30,16 @@ impl Ray {
     pub fn transform(&self, m: Matrix4x4) -> Ray {
         Ray::new(mul_by_tuple(m, self.origin), mul_by_tuple(m, self.direction)).unwrap()
     }
+
+    pub fn position (&self, time: f64) -> Tuple {
+        self.origin + self.direction * time
+    }
 }
 
-fn position(r: &Ray, time: f64) -> Tuple {
-    *&r.origin + *&r.direction * time
-//    tuple_add(r.origin, tuple_mul_scalar(r.direction, time))
-}
 
 #[cfg(test)]
 mod tests {
-    use crate::ray::{position, Ray};
+    use crate::ray::{Ray};
     use crate::transformation::{scaling, translation};
     use crate::tuple::Tuple;
 

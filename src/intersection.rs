@@ -20,6 +20,10 @@ impl<'a> Intersection<'a> {
         Intersection { t, object }
     }
 
+    pub fn object(&self) -> &Sphere {
+        self.object
+    }
+
     pub fn t(&self) -> f64 {
         self.t
     }

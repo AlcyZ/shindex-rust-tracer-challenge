@@ -69,6 +69,10 @@ impl Material {
         // Add the three contributions together to get the final shading
         ambient + diffuse + specular
     }
+
+    pub fn change_color(&mut self, color: Color) {
+        self.color = color
+    }
 }
 
 impl std::cmp::PartialEq for Material {
