@@ -73,6 +73,22 @@ impl Material {
     pub fn change_color(&mut self, color: Color) {
         self.color = color
     }
+
+    pub fn change_ambient(&mut self, ambient: f64) {
+        self.ambient = ambient
+    }
+
+    pub fn change_diffuse(&mut self, diffuse: f64) {
+        self.diffuse = diffuse
+    }
+
+    pub fn change_specular(&mut self, specular: f64) {
+        self.specular = specular
+    }
+
+    pub fn change_shininess(&mut self, shininess: f64) {
+        self.shininess = shininess
+    }
 }
 
 impl std::cmp::PartialEq for Material {

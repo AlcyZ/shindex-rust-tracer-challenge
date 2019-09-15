@@ -14,7 +14,7 @@ use crate::tuple::Tuple;
 
 pub fn run() {
     let now = Instant::now();
-    let canvas_size = 2048;
+    let canvas_size = 400;
 
     let shrink_y = scaling(1.0, 0.5, 1.0);
     let shrink_x = scaling(0.5, 1.0, 1.0);
@@ -22,16 +22,16 @@ pub fn run() {
     let shrink_x_and_skew = mul(shearing(1.0, 0.0, 0.0, 0.0, 0.0, 0.0), scaling(0.5, 1.0, 1.0));
 
     let handle_a = std::thread::spawn(move || process(canvas_size, None, "default"));
-    let handle_b = std::thread::spawn(move || process(canvas_size, Some(shrink_y), "shrink_y"));
-    let handle_c = std::thread::spawn(move || process(canvas_size, Some(shrink_x), "shrink_x"));
-    let handle_d = std::thread::spawn(move || process(canvas_size, Some(shrink_x_and_rotate), "shrink_x_and_rotate"));
-    let handle_e = std::thread::spawn(move || process(canvas_size, Some(shrink_x_and_skew), "shrink_x_and_skew"));
+//    let handle_b = std::thread::spawn(move || process(canvas_size, Some(shrink_y), "shrink_y"));
+//    let handle_c = std::thread::spawn(move || process(canvas_size, Some(shrink_x), "shrink_x"));
+//    let handle_d = std::thread::spawn(move || process(canvas_size, Some(shrink_x_and_rotate), "shrink_x_and_rotate"));
+//    let handle_e = std::thread::spawn(move || process(canvas_size, Some(shrink_x_and_skew), "shrink_x_and_skew"));
 
     handle_a.join().unwrap_or_default();
-    handle_b.join().unwrap_or_default();
-    handle_c.join().unwrap_or_default();
-    handle_d.join().unwrap_or_default();
-    handle_e.join().unwrap_or_default();
+//    handle_b.join().unwrap_or_default();
+//    handle_c.join().unwrap_or_default();
+//    handle_d.join().unwrap_or_default();
+//    handle_e.join().unwrap_or_default();
 
     println!("Sphere -> Rendering time: {:?}\nSize: {}px", now.elapsed(), canvas_size);
 }

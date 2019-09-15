@@ -82,6 +82,22 @@ impl Sphere {
         self.material.change_color(color)
     }
 
+    pub fn change_ambient(&mut self, ambient: f64) {
+        self.material.change_ambient(ambient)
+    }
+
+    pub fn change_diffuse(&mut self, diffuse: f64) {
+        self.material.change_diffuse(diffuse)
+    }
+
+    pub fn change_specular(&mut self, specular: f64) {
+        self.material.change_specular(specular)
+    }
+
+    pub fn change_shininess(&mut self, shininess: f64) {
+        self.material.change_shininess(shininess)
+    }
+    
     pub fn apply_mat(&mut self, mat: Material) {
         self.material = mat
     }
