@@ -76,6 +76,19 @@ pub fn col_to_string(color: &f64) -> String {
     (col * 255__f64).round().to_string()
 }
 
+pub fn col_to_u8(color: f64) -> u8 {
+    let col: f64;
+    if color > 1_f64 {
+        col = 1_f64
+    } else if color < 0_f64 {
+        col = 0_f64
+    } else {
+        col = color
+    }
+
+    (col * 255__f64).round() as u8
+}
+
 impl Color {
     pub fn new(red: f64, green: f64, blue: f64) -> Color {
         Color { red, green, blue }
