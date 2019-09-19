@@ -70,6 +70,10 @@ impl Material {
         ambient + diffuse + specular
     }
 
+    pub fn color(&self) -> Color {
+        self.color
+    }
+
     pub fn change_color(&mut self, color: Color) {
         self.color = color
     }

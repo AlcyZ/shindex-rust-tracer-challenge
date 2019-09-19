@@ -13,15 +13,16 @@ mod light;
 mod material;
 mod sphere;
 mod intersection;
+mod world;
 mod util;
 mod playground;
 
 fn main() {
-    projectile_run();
-    println!();
-    clock_run();
-    println!();
-    circle_run();
-    println!();
+//    projectile_run();
+//    println!();
+//    clock_run();
+//    println!();
+//    circle_run();
+//    println!();
     sphere_run();
 }

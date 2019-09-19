@@ -4,6 +4,7 @@ use std::time::Instant;
 
 use crate::canvas::Canvas;
 use crate::color::Color;
+use crate::intersection::Intersections;
 use crate::light::PointLight;
 use crate::matrix::{Matrix4x4, mul};
 use crate::playground::utility::save_ppm;
@@ -77,7 +78,14 @@ fn process(canvas_size: usize, transformation: Option<Matrix4x4>, name: &str) {
 
                 let r = Ray::new(ray_origin, (position - ray_origin).normalize()).unwrap();
 
-                if let Some(xs) = sphere_clone.intersect(&r) {
+                if let Some(xs_arr) = sphere_clone.intersect(&r) {
+                    // Todo: Due to some refactoring, it is needed to glue the intersections
+                    // manually together at the moment
+                    let [first, second] = xs_arr;
+
+                    let mut xs = Intersections::new(first);
+                    xs.add(second);
+
                     // the unwrap below is safe, because the current sample scene didn't have any
                     // items behind the eye.
                     let hit = xs.hit().unwrap();
