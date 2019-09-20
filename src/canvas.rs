@@ -23,7 +23,7 @@ impl Canvas {
         Canvas { width, height, pixels }
     }
 
-    fn pixel_at(&self, width: usize, height: usize) -> &Color {
+    pub fn pixel_at(&self, width: usize, height: usize) -> &Color {
         &self.pixels[height][width]
     }
 

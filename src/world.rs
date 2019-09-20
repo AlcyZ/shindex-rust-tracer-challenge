@@ -6,7 +6,7 @@ use crate::sphere::Sphere;
 use crate::transformation::scaling;
 
 #[derive(Debug)]
-struct World {
+pub struct World {
     light: Option<PointLight>,
     objects: Option<Vec<Sphere>>,
 }
@@ -65,7 +65,7 @@ impl World {
     }
 }
 
-fn test_default_world() -> World {
+pub fn test_default_world() -> World {
     let light = PointLight::from_cords(-10.0, -10.0, -10.0, Color::white());
     let mut s1 = Sphere::new();
     s1.change_color(Color::new(0.8, 1.0, 0.6));

@@ -14,6 +14,7 @@ mod material;
 mod sphere;
 mod intersection;
 mod world;
+mod camera;
 mod util;
 mod playground;
 
