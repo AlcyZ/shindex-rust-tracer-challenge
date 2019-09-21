@@ -16,6 +16,17 @@ impl World {
         World { light: None, objects: None }
     }
 
+    pub fn add_object(&mut self, shape: Sphere) {
+        if self.objects.is_none() {
+            self.objects = Some(vec![]);
+        }
+        self.objects.as_mut().unwrap().push(shape)
+    }
+
+    pub fn change_light(&mut self, light: PointLight) {
+        self.light = Some(light)
+    }
+
     pub fn intersect(&self, ray: &Ray) -> Option<Intersections> {
         if self.objects.is_none() {
             return None;

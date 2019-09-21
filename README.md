@@ -11,3 +11,7 @@
 <img src="./PuttingItTogether/circle_shrink_x_and_rotate.png" alt="Circle shrink x and rotate" width="200" height="200"> <img src="./PuttingItTogether/sphere_shrink_x_and_rotate.png" alt="Sphere shrink x and rotate" width="200" height="200">   
 <img src="./PuttingItTogether/circle_shrink_x_and_skew.png" alt="Circle shrink x and skew" width="200" height="200"> <img src="./PuttingItTogether/sphere_shrink_x_and_skew.png" alt="Sphere shrink x and skew" width="200" height="200">  
 <img src="./PuttingItTogether/circle_shrink_y.png" alt="Circle shrink y" width="200" height="200">  <img src="./PuttingItTogether/sphere_shrink_y.png" alt="Sphere shrink y" width="200" height="200">  
+
+### Chapter 7 - Scene
+<img src="./PuttingItTogether/many-spheres.png" alt="many spheres" width="600" height="300">  
+

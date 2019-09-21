@@ -1,10 +1,14 @@
+use std::sync::{Arc, mpsc};
+use std::sync::mpsc::SendError;
+
 use crate::canvas::Canvas;
 use crate::matrix::{inverse, Matrix4x4, MATRIX_4X4_IDENTITY, mul_by_tuple};
 use crate::ray::Ray;
 use crate::tuple::Tuple;
 use crate::world::World;
 
-struct Camera {
+#[derive(Clone)]
+pub struct Camera {
     h_size: usize,
     v_size: usize,
     field_of_view: f64,
@@ -39,7 +43,7 @@ impl Camera {
         (pixel_size, half_width, half_height)
     }
 
-    pub fn ray_for_pixel(&self, px: usize, py: usize) -> Ray {
+    fn ray_for_pixel(&self, px: usize, py: usize) -> Ray {
         // the offset from the edge of the canvas to the pixel's center
         let x_offset = (px as f64 + 0.5) * self.pixel_size;
         let y_offset = (py as f64 + 0.5) * self.pixel_size;
@@ -72,11 +76,45 @@ impl Camera {
 
         image
     }
+
+    pub fn transform(&mut self, transformation: Matrix4x4) {
+        self.transform = transformation;
+    }
 }
 
-#[cfg(test)]
-mod test {
+pub fn render(camera: Camera, world: Arc<World>) -> Canvas {
+    let mut image = Canvas::new(camera.h_size, camera.v_size);
+    let (tx, rx) = mpsc::channel();
+
+    for y in 0..camera.v_size {
+        let tx_c = mpsc::Sender::clone(&tx);
+        let cam_clone = camera.clone();
+        let world_clone = world.clone();
+
+        std::thread::spawn(move || {
+            for x in 0..cam_clone.h_size {
+                let ray = cam_clone.ray_for_pixel(x, y);
+                let color = world_clone.color_at(&ray);
+
+                tx_c.send(Some((x, y, color))).unwrap();
+            }
+        });
+    }
+    std::thread::spawn(move || tx.send(None));
+
+    for rec in rx {
+        if let Some((x, y, color)) = rec {
+            image.write_pixel(x, y, color);
+        }
+    }
+
+    image
+}
+
+    #[cfg(test)]
+    mod test {
     use std::f64::consts::PI;
+    use std::sync::Arc;
 
     use crate::camera::Camera;
     use crate::color::Color;
