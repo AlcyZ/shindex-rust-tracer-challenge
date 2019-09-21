@@ -1,10 +1,10 @@
 use std::cmp::Ordering;
-use std::f64::EPSILON;
 
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::tuple::Tuple;
+use crate::util::EPSILON;
 
 #[derive(Debug)]
 pub struct Intersection<'a> {
@@ -137,13 +137,12 @@ impl<'a> Computation<'a> {
 
 #[cfg(test)]
 mod tests {
-    use std::f64::EPSILON;
-
     use crate::intersection::{Computation, Intersection, Intersections};
     use crate::ray::Ray;
     use crate::sphere::Sphere;
     use crate::transformation::translation;
     use crate::tuple::Tuple;
+    use crate::util::EPSILON;
 
     #[test]
     fn an_intersection_encapsulates_t_and_object() {

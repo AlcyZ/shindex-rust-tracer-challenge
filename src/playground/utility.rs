@@ -15,7 +15,7 @@ pub fn save_ppm(canvas: Canvas, name: &str) {
 
 pub fn save_png(canvas: Canvas, name: &str) {
     let file_name = format!("{}.png", name);
-    let path: PathBuf = ["PuttingItTogether", "png", &file_name].iter().collect();
+    let path: PathBuf = ["PuttingItTogether", &file_name].iter().collect();
 
     let file = File::create(path).unwrap();
     let ref mut w = BufWriter::new(file);

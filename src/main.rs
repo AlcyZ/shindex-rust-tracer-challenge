@@ -20,13 +20,13 @@ mod util;
 mod playground;
 
 fn main() {
-    projectile_run();
-    println!();
-    clock_run();
-    println!();
-    circle_run();
-    println!();
-    sphere_run();
-    println!();
+//    projectile_run();
+//    println!();
+//    clock_run();
+//    println!();
+//    circle_run();
+//    println!();
+//    sphere_run();
+//    println!();
     spheres_run();
 }
