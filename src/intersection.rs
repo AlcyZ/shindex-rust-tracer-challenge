@@ -4,6 +4,7 @@ use crate::material::Material;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::tuple::Tuple;
+use crate::util::EPSILON;
 
 #[derive(Debug)]
 pub struct Intersection<'a> {
@@ -31,6 +32,7 @@ impl<'a> Intersection<'a> {
     }
 }
 
+#[derive(Debug)]
 pub struct Intersections<'a> {
     items: Vec<Intersection<'a>>
 }
@@ -88,6 +90,7 @@ pub struct Computation<'a> {
     pub eye_v: Tuple,
     pub normal_v: Tuple,
     pub inside: bool,
+    pub over_point: Tuple,
 }
 
 /// Todo: the normal_at match is a bit strange .. maybe i should take a look at that again and think if  it is possible that normal_at could fail
@@ -107,6 +110,8 @@ impl<'a> Computation<'a> {
                     inside = false;
                 }
 
+                let over_point = point + normal * EPSILON;
+
                 Some(Computation::new(
                     i.t,
                     i.object,
@@ -114,14 +119,15 @@ impl<'a> Computation<'a> {
                     -r.direction,
                     normal,
                     inside,
+                    over_point,
                 ))
             }
             Err(e) => None
         }
     }
 
-    fn new(t: f64, object: &'a Sphere, point: Tuple, eye_v_: Tuple, normal_v: Tuple, inside: bool) -> Computation {
-        Computation { t, object, point, eye_v: eye_v_, normal_v, inside }
+    fn new(t: f64, object: &'a Sphere, point: Tuple, eye_v_: Tuple, normal_v: Tuple, inside: bool, over_point: Tuple) -> Computation {
+        Computation { t, object, point, eye_v: eye_v_, normal_v, inside, over_point }
     }
 
     pub fn material(&self) -> &Material {
@@ -134,7 +140,9 @@ mod tests {
     use crate::intersection::{Computation, Intersection, Intersections};
     use crate::ray::Ray;
     use crate::sphere::Sphere;
+    use crate::transformation::translation;
     use crate::tuple::Tuple;
+    use crate::util::EPSILON;
 
     #[test]
     fn an_intersection_encapsulates_t_and_object() {
@@ -246,5 +254,19 @@ mod tests {
         assert_eq!(comps.point, Tuple::point(0.0, 0.0, 1.0));
         assert_eq!(comps.eye_v, Tuple::vector(0.0, 0.0, -1.0));
         assert_eq!(comps.normal_v, Tuple::vector(0.0, 0.0, -1.0));
+    }
+
+    #[test]
+    fn hit_should_offset_point() {
+        let r = Ray::from_cords((0.0, 0.0, -5.0), (0.0, 0.0, 1.0));
+        let mut shape = Sphere::new();
+
+        shape.transform(translation(0.0, 0.0, 1.0));
+        let i = Intersection::new(5.0, &shape);
+
+        let comps = Computation::prepare(&i, &r).unwrap();
+
+        assert!(comps.over_point.z < -EPSILON / 2.0);
+        assert!(comps.point.z > comps.over_point.z);
     }
 }

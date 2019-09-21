@@ -4,6 +4,7 @@ use crate::light::PointLight;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::transformation::scaling;
+use crate::tuple::Tuple;
 
 #[derive(Debug)]
 pub struct World {
@@ -51,11 +52,14 @@ impl World {
     }
 
     pub fn shade_hit(&self, computation: &Computation) -> Color {
+        let in_shadow = self.is_shadowed(computation.over_point);
+
         computation.material().lighting(
             self.light.unwrap(),
-            computation.point,
+            computation.over_point,
             computation.eye_v,
             computation.normal_v,
+            in_shadow,
         )
     }
 
@@ -64,6 +68,22 @@ impl World {
         match self._col(&ray) {
             Some(c) => c,
             None => Color::black()
+        }
+    }
+
+    fn is_shadowed(&self, point: Tuple) -> bool {
+        let v = self.light.expect("missing light source").position() - point;
+        let direction = v.normalize();
+
+        let r = Ray::new(point, direction).unwrap();
+        let xs = self.intersect(&r);
+
+        match xs {
+            Some(xs) => match xs.hit() {
+                Some(h) => h.t() < v.magnitude(),
+                None => false
+            },
+            None => false
         }
     }
 
@@ -77,7 +97,7 @@ impl World {
 }
 
 pub fn test_default_world() -> World {
-    let light = PointLight::from_cords(-10.0, -10.0, -10.0, Color::white());
+    let light = PointLight::from_cords(-10.0, 10.0, -10.0, Color::white());
     let mut s1 = Sphere::new();
     s1.change_color(Color::new(0.8, 1.0, 0.6));
     s1.change_diffuse(0.7);
@@ -99,7 +119,8 @@ mod tests {
     use crate::material::Material;
     use crate::ray::Ray;
     use crate::sphere::Sphere;
-    use crate::transformation::scaling;
+    use crate::transformation::{scaling, translation};
+    use crate::tuple::Tuple;
     use crate::world::{test_default_world, World};
 
     #[test]
@@ -182,5 +203,58 @@ mod tests {
         let color = w.color_at(&r);
 
         assert_eq!(color, inner.material().color())
+    }
+
+
+    #[test]
+    fn no_shadow_with_no_collinear_objects() {
+        let w = test_default_world();
+        let p = Tuple::point(0.0, 10.0, 0.0);
+
+        assert!(!w.is_shadowed(p));
+    }
+
+
+    #[test]
+    fn shadow_when_object_between_point_and_light() {
+        let w = test_default_world();
+        let p = Tuple::point(10.0, -10.0, 10.0);
+
+        assert!(w.is_shadowed(p));
+    }
+
+
+    #[test]
+    fn no_shadow_when_object_behind_light() {
+        let w = test_default_world();
+        let p = Tuple::point(-20.0, -0.0, -20.0);
+
+        assert!(!w.is_shadowed(p));
+    }
+
+
+    #[test]
+    fn no_shadow_when_object_behind_point() {
+        let w = test_default_world();
+        let p = Tuple::point(-2.0, 2.0, -2.0);
+
+        assert!(!w.is_shadowed(p));
+    }
+
+    #[test]
+    fn shade_hit_is_given_intersection_in_shadow() {
+        let mut w = World::new();
+        w.light = Some(PointLight::from_cords(0.0, 0.0, -10.0, Color::white()));
+        w.add_object(Sphere::new());
+
+        let mut s = Sphere::new();
+        s.transform(translation(0.0, 0.0, 10.0));
+        w.add_object(s.clone());
+
+        let r = Ray::from_cords((0.0, 0.0, 5.0), (0.0, 0.0, 1.0));
+        let i = Intersection::new(4.0, &s);
+        let comps = Computation::prepare(&i, &r).unwrap();
+
+        assert_eq!(w.shade_hit(&comps), Color::new(0.1, 0.1, 0.1));
     }
 }

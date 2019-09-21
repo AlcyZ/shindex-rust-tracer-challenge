@@ -29,7 +29,7 @@ impl Material {
         Material::new(Color::white(), 0.1, 0.9, 0.9, 200.0).unwrap()
     }
 
-    pub fn lighting(&self, light: PointLight, point: Tuple, eye_v: Tuple, normal_v: Tuple) -> Color {
+    pub fn lighting(&self, light: PointLight, point: Tuple, eye_v: Tuple, normal_v: Tuple, in_shadow: bool) -> Color {
         // combine the surface color with the light's color/intensity
         let effective_color = self.color * light.intensity();
 
@@ -43,6 +43,10 @@ impl Material {
         // light vector and the normal vector. A negative number means the
         // light is on the other side of the surface.
         let light_dot_normal = light_v.dot(normal_v);
+        if in_shadow {
+            return ambient;
+        }
+
         let diffuse;
         let specular;
         if light_dot_normal < 0.0 {
@@ -133,8 +137,9 @@ mod tests {
         let eye_v = Tuple::vector(0.0, 0.0, -1.0);
         let normal_v = Tuple::vector(0.0, 0.0, -1.0);
         let light = PointLight::new(Tuple::point(0.0, 0.0, -10.0), Color::white()).unwrap();
+        let in_shadow = false;
 
-        let result = m.lighting(light, position, eye_v, normal_v);
+        let result = m.lighting(light, position, eye_v, normal_v, in_shadow);
         assert_eq!(result, Color::new(1.9, 1.9, 1.9));
     }
 
@@ -145,9 +150,9 @@ mod tests {
         let eye_v = Tuple::vector(0.0, a, -a);
         let normal_v = Tuple::vector(0.0, 0.0, -1.0);
         let light = PointLight::new(Tuple::point(0.0, 0.0, -10.0), Color::white()).unwrap();
-        ;
+        let in_shadow = false;
 
-        let result = m.lighting(light, position, eye_v, normal_v);
+        let result = m.lighting(light, position, eye_v, normal_v, in_shadow);
         assert_eq!(result, Color::new(1.0, 1.0, 1.0));
     }
 
@@ -157,8 +162,9 @@ mod tests {
         let eye_v = Tuple::vector(0.0, 0.0, -1.0);
         let normal_v = Tuple::vector(0.0, 0.0, -1.0);
         let light = PointLight::new(Tuple::point(0.0, 10.0, -10.0), Color::white()).unwrap();
+        let in_shadow = false;
 
-        let result = m.lighting(light, position, eye_v, normal_v);
+        let result = m.lighting(light, position, eye_v, normal_v, in_shadow);
         assert_eq!(result, Color::new(0.7364, 0.7364, 0.7364));
     }
 
@@ -169,8 +175,9 @@ mod tests {
         let eye_v = Tuple::vector(0.0, -a, -a);
         let normal_v = Tuple::vector(0.0, 0.0, -1.0);
         let light = PointLight::new(Tuple::point(0.0, 10.0, -10.0), Color::white()).unwrap();
+        let in_shadow = false;
 
-        let result = m.lighting(light, position, eye_v, normal_v);
+        let result = m.lighting(light, position, eye_v, normal_v, in_shadow);
         assert_eq!(result, Color::new(1.6364, 1.6364, 1.6364));
     }
 
@@ -180,8 +187,21 @@ mod tests {
         let eye_v = Tuple::vector(0.0, 0.0, -1.0);
         let normal_v = Tuple::vector(0.0, 0.0, -1.0);
         let light = PointLight::new(Tuple::point(0.0, 0.0, 10.0), Color::white()).unwrap();
+        let in_shadow = false;
 
-        let result = m.lighting(light, position, eye_v, normal_v);
+        let result = m.lighting(light, position, eye_v, normal_v, in_shadow);
+        assert_eq!(result, Color::new(0.1, 0.1, 0.1));
+    }
+
+    #[test]
+    fn lighting_with_surface_in_shadow() {
+        let (m, position) = setup();
+        let eye_v = Tuple::vector(0.0, 0.0, -1.0);
+        let normal_v = Tuple::vector(0.0, 0.0, -1.0);
+        let light = PointLight::new(Tuple::point(0.0, 0.0, -10.0), Color::white()).unwrap();
+        let in_shadow = true;
+
+        let result = m.lighting(light, position, eye_v, normal_v, in_shadow);
         assert_eq!(result, Color::new(0.1, 0.1, 0.1));
     }
 }
