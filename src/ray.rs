@@ -25,6 +25,13 @@ impl Ray {
         Ok(Ray { origin, direction })
     }
 
+    pub fn from_cords(origin: (f64, f64, f64), direction: (f64, f64, f64)) -> Ray {
+        let (ox, oy, oz) = origin;
+        let (dx, dy, dz) = direction;
+
+        Ray::new(Tuple::point(ox, oy, oz), Tuple::vector(dx, dy, dz)).unwrap()
+    }
+
     pub fn transform(&self, m: Matrix4x4) -> Ray {
         Ray::new(mul_by_tuple(m, self.origin), mul_by_tuple(m, self.direction)).unwrap()
     }

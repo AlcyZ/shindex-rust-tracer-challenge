@@ -2,6 +2,7 @@ use crate::playground::circle::run as circle_run;
 use crate::playground::clock::run as clock_run;
 use crate::playground::projectile::run as projectile_run;
 use crate::playground::sphere::run as sphere_run;
+use crate::playground::spheres::run as spheres_run;
 
 mod tuple;
 mod color;
@@ -13,6 +14,8 @@ mod light;
 mod material;
 mod sphere;
 mod intersection;
+mod world;
+mod camera;
 mod util;
 mod playground;
 
@@ -24,4 +27,6 @@ fn main() {
     circle_run();
     println!();
     sphere_run();
+    println!();
+    spheres_run();
 }

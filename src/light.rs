@@ -1,7 +1,7 @@
 use crate::color::Color;
 use crate::tuple::Tuple;
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct PointLight {
     position: Tuple,
     intensity: Color,
@@ -19,6 +19,10 @@ impl PointLight {
         }
 
         Ok(PointLight { position, intensity })
+    }
+
+    pub fn from_cords(x: f64, y: f64, z: f64, intensity: Color) -> PointLight {
+        PointLight::new(Tuple::point(x, y, z), intensity).unwrap()
     }
 
     pub fn position(&self) -> Tuple {

@@ -29,7 +29,13 @@ impl Sphere {
         Sphere { id, transform: MATRIX_4X4_IDENTITY, material: Material::default() }
     }
 
-    pub fn intersect(&self, ray: &Ray) -> Option<Intersections> {
+    pub fn from_mat(material: Material) -> Sphere {
+        let id = SPHERE_IDS.fetch_add(1, Ordering::SeqCst);
+
+        Sphere { id, transform: MATRIX_4X4_IDENTITY, material }
+    }
+
+    pub fn intersect(&self, ray: &Ray) -> Option<[Intersection; 2]> {
         let ray = ray.transform(inverse(self.transformation())?);
 
         let sphere_to_ray = ray.origin - Tuple::point(0.0, 0.0, 0.0);
@@ -49,10 +55,8 @@ impl Sphere {
 
         let i1 = Intersection::new(t1, self);
         let i2 = Intersection::new(t2, self);
-        let mut xs = Intersections::new(i1);
-        xs.add(i2);
 
-        Some(xs)
+        Some([i1, i2])
     }
 
     pub fn transform(&mut self, t: Matrix4x4) {
@@ -80,6 +84,22 @@ impl Sphere {
 
     pub fn change_color(&mut self, color: Color) {
         self.material.change_color(color)
+    }
+
+    pub fn change_ambient(&mut self, ambient: f64) {
+        self.material.change_ambient(ambient)
+    }
+
+    pub fn change_diffuse(&mut self, diffuse: f64) {
+        self.material.change_diffuse(diffuse)
+    }
+
+    pub fn change_specular(&mut self, specular: f64) {
+        self.material.change_specular(specular)
+    }
+
+    pub fn change_shininess(&mut self, shininess: f64) {
+        self.material.change_shininess(shininess)
     }
 
     pub fn apply_mat(&mut self, mat: Material) {
@@ -174,9 +194,8 @@ mod tests {
         let sphere = Sphere::new();
         let xs = sphere.intersect(&ray).unwrap();
 
-        assert_eq!(xs.count(), 2);
-        assert_eq!(xs.get(0).unwrap().object(), &sphere);
-        assert_eq!(xs.get(1).unwrap().object(), &sphere)
+        assert_eq!(xs[0].object(), &sphere);
+        assert_eq!(xs[1].object(), &sphere)
     }
 
     #[test]
@@ -196,9 +215,8 @@ mod tests {
 
         let xs = s.intersect(&r).unwrap();
 
-        assert_eq!(xs.count(), 2);
-        assert_eq!(xs.get(0).unwrap().t(), 3.0);
-        assert_eq!(xs.get(1).unwrap().t(), 7.0);
+        assert_eq!(xs[0].t(), 3.0);
+        assert_eq!(xs[1].t(), 7.0);
     }
 
     #[test]
