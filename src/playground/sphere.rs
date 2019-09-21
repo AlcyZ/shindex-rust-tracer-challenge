@@ -92,7 +92,7 @@ fn process(canvas_size: usize, transformation: Option<Matrix4x4>, name: &str) {
                     let point = r.position(hit.t());
                     let normal = hit.object().normal_at(point).unwrap(); // Todo: Keep an eye on this unwrap
                     let eye = -r.direction;
-                    let color = hit.object().material().lighting(light_clone, point, eye, normal);
+                    let color = hit.object().material().lighting(light_clone, point, eye, normal, false);
 
                     tx1.send(Some((x, y, color))).unwrap();
                 }
