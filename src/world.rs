@@ -2,259 +2,259 @@ use crate::color::Color;
 use crate::intersection::{Computation, Intersections};
 use crate::light::PointLight;
 use crate::ray::Ray;
+use crate::shape::Shape;
 use crate::sphere::Sphere;
-use crate::transformation::scaling;
 use crate::tuple::Tuple;
 
-#[derive(Debug)]
-pub struct World {
-    light: Option<PointLight>,
-    objects: Option<Vec<Sphere>>,
+pub(crate) struct World {
+    pub(crate) light: Option<PointLight>,
+    pub(crate) objects: Vec<Box<dyn Shape>>,
 }
 
 impl World {
-    pub fn new() -> World {
-        World { light: None, objects: None }
-    }
-
-    pub fn add_object(&mut self, shape: Sphere) {
-        if self.objects.is_none() {
-            self.objects = Some(vec![]);
+    pub(crate) fn new() -> World {
+        World {
+            light: None,
+            objects: vec![],
         }
-        self.objects.as_mut().unwrap().push(shape)
     }
 
-    pub fn change_light(&mut self, light: PointLight) {
-        self.light = Some(light)
-    }
+    pub(crate) fn color_at(&self, ray: Ray) -> Color {
+        let xs = self.intersect(ray);
+        match xs.hit() {
+            Some(hit) => {
+                let comp = hit.prepare_computation(ray);
 
-    pub fn intersect(&self, ray: &Ray) -> Option<Intersections> {
-        if self.objects.is_none() {
-            return None;
-        }
-
-        let mut xs = vec![];
-        for object in self.objects.as_ref().unwrap() {
-            if let Some(intersection) = object.intersect((&ray)) {
-                let [first, second] = intersection;
-
-                xs.push(first);
-                xs.push(second);
+                self.shade_hit(&comp)
             }
-        }
-
-        if xs.len() == 0 {
-            return None;
-        }
-        xs.sort_by(|i, b| i.t().partial_cmp(&b.t()).unwrap());
-
-        Some(Intersections::from_intersections(xs))
-    }
-
-    pub fn shade_hit(&self, computation: &Computation) -> Color {
-        let in_shadow = self.is_shadowed(computation.over_point);
-
-        computation.material().lighting(
-            self.light.unwrap(),
-            computation.over_point,
-            computation.eye_v,
-            computation.normal_v,
-            in_shadow,
-        )
-    }
-
-
-    pub fn color_at(&self, ray: &Ray) -> Color {
-        match self._col(&ray) {
-            Some(c) => c,
-            None => Color::black()
+            None => Color::new(0., 0., 0.),
         }
     }
 
     fn is_shadowed(&self, point: Tuple) -> bool {
-        let v = self.light.expect("missing light source").position() - point;
-        let direction = v.normalize();
+        let light_position = match self.light {
+            Some(light) => light.position,
+            None => return false,
+        };
 
-        let r = Ray::new(point, direction).unwrap();
-        let xs = self.intersect(&r);
+        let direction_v = light_position - point;
+        let distance = direction_v.magnitude();
+        let direction = direction_v.normalize();
 
-        match xs {
-            Some(xs) => match xs.hit() {
-                Some(h) => h.t() < v.magnitude(),
-                None => false
-            },
-            None => false
+        let xs = self.intersect(Ray::new(point, direction));
+
+        match xs.hit() {
+            Some(hit) => hit.t < distance,
+            None => false,
         }
     }
 
-    fn _col(&self, ray: &Ray) -> Option<Color> {
-        let xs = self.intersect(ray)?;
-        let hit = xs.hit()?;
-        let computation = Computation::prepare(&hit, ray)?;
+    fn intersect(&self, ray: Ray) -> Intersections {
+        let mut xs = Intersections::new();
 
-        Some(self.shade_hit(&computation))
+        for object in &self.objects {
+            if let Some(i) = object.intersect(ray) {
+                xs.merge(i);
+            }
+        }
+        xs.sort();
+
+        xs
     }
-}
 
-pub fn test_default_world() -> World {
-    let light = PointLight::from_cords(-10.0, 10.0, -10.0, Color::white());
-    let mut s1 = Sphere::new();
-    s1.change_color(Color::new(0.8, 1.0, 0.6));
-    s1.change_diffuse(0.7);
-    s1.change_specular(0.2);
+    fn shade_hit(&self, computation: &Computation) -> Color {
+        let is_shadowed = self.is_shadowed(computation.over_point);
 
-    let mut s2 = Sphere::new();
-    s2.transform(scaling(0.5, 0.5, 0.5));
-
-    World { light: Some(light), objects: Some(vec![s1, s2]) }
+        // Todo: Fix unwrap
+        computation.object.get_props().get_material().lighting(
+            self.light.unwrap(),
+            computation.over_point,
+            computation.eye_v,
+            computation.normal_v,
+            is_shadowed,
+        )
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::borrow::Borrow;
-
+    use super::*;
     use crate::color::Color;
-    use crate::intersection::{Computation, Intersection};
-    use crate::light::PointLight;
-    use crate::material::Material;
+    use crate::intersection::Intersection;
+    use crate::math::transformation::{scaling, translation};
     use crate::ray::Ray;
-    use crate::sphere::Sphere;
-    use crate::transformation::{scaling, translation};
     use crate::tuple::Tuple;
-    use crate::world::{test_default_world, World};
+
+    fn default_world() -> World {
+        let point_light = PointLight::new(Tuple::point(-10., 10., -10.), Color::new(1., 1., 1.));
+        let mut s1 = Sphere::new();
+        s1.mut_props().set_material_color(Color::new(0.8, 1., 0.6));
+        s1.mut_props().set_material_diffuse(0.7);
+        s1.mut_props().set_material_specular(0.2);
+
+        let mut s2 = Sphere::new();
+        s2.mut_props().set_transform(scaling(0.5, 0.5, 0.5));
+
+        let mut w = World::new();
+        w.light = Some(point_light);
+        w.objects.push(Box::new(s1));
+        w.objects.push(Box::new(s2));
+
+        w
+    }
 
     #[test]
-    fn creating_a_world() {
+    fn test_creating_world() {
         let w = World::new();
 
         assert!(w.light.is_none());
-        assert!(w.objects.is_none())
+        assert_eq!(w.objects.len(), 0);
     }
 
     #[test]
-    fn intersect_a_world_with_a_ray() {
-        let w = test_default_world();
-        let r = Ray::from_cords((0.0, 0.0, -5.0), (0.0, 0.0, 1.0));
+    fn test_intersect_world_with_ray() {
+        let w = default_world();
+        let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::direction(0.0, 0.0, 1.));
 
-        let xs = w.intersect(&r).unwrap();
+        let xs = w.intersect(r);
 
-        assert_eq!(xs.count(), 4);
-        assert_eq!(xs.get(0).unwrap().t(), 4.0);
-        assert_eq!(xs.get(1).unwrap().t(), 4.5);
-        assert_eq!(xs.get(2).unwrap().t(), 5.5);
-        assert_eq!(xs.get(3).unwrap().t(), 6.0);
+        assert_eq!(4, xs.len());
+        assert_eq!(4., xs.get(0).unwrap().t);
+        assert_eq!(4.5, xs.get(1).unwrap().t);
+        assert_eq!(5.5, xs.get(2).unwrap().t);
+        assert_eq!(6., xs.get(3).unwrap().t);
     }
 
     #[test]
-    fn shading_an_intersection() {
-        let w = test_default_world();
-        let r = Ray::from_cords((0.0, 0.0, -5.0), (0.0, 0.0, 1.0));
+    fn test_shading_an_intersection() {
+        let w = default_world();
+        let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::direction(0.0, 0.0, 1.));
+        let shape = w.objects.first().unwrap();
+        let i = Intersection::new(4., shape.as_ref());
 
-        let shapes = w.objects.as_ref().unwrap();
-        let shape = shapes.first().unwrap();
+        let comps = i.prepare_computation(r);
+        let c = w.shade_hit(&comps);
 
-        let i = Intersection::new(4.0, shape);
-        let comps = Computation::prepare(&i, &r).unwrap();
-        let color = w.shade_hit(&comps);
-
-        assert_eq!(color, Color::new(0.38066, 0.47583, 0.2855))
+        assert_eq!(c, Color::new(0.38066, 0.47583, 0.2855));
     }
 
     #[test]
-    fn shading_an_intersection_from_inside() {
-        let mut w = test_default_world();
-        w.light = Some(PointLight::from_cords(0.0, 0.25, 0.0, Color::white()));
-        let r = Ray::from_cords((0.0, 0.0, 0.0), (0.0, 0.0, 1.0));
-        let shape = w.objects.as_ref().unwrap().last().unwrap();
-        let i = Intersection::new(0.5, &shape);
-        let comps = Computation::prepare(&i, &r).unwrap();
-        let color = w.shade_hit(&comps);
+    fn test_shading_an_intersection_from_inside() {
+        let mut w = default_world();
+        w.light = Some(PointLight::new(
+            Tuple::point(0., 0.25, 0.),
+            Color::new(1., 1., 1.),
+        ));
 
-        assert_eq!(color, Color::new(0.90498, 0.90498, 0.90498))
+        let r = Ray::new(Tuple::point(0., 0., 0.), Tuple::direction(0.0, 0.0, 1.));
+        let shape = w.objects.last().unwrap();
+        let i = Intersection::new(0.5, shape.as_ref());
+
+        let comps = i.prepare_computation(r);
+        let c = w.shade_hit(&comps);
+
+        assert_eq!(c, Color::new(0.90498, 0.90498, 0.90498));
     }
 
     #[test]
-    fn color_then_ray_misses() {
-        let w = test_default_world();
-        let r = Ray::from_cords((0.0, 0.0, -5.0), (0.0, 1.0, 0.0));
-        let color = w.color_at(&r);
+    fn test_shade_hit_with_intersection_in_shadow() {
+        let mut w = World::new();
+        w.light = Some(PointLight::new(
+            Tuple::point(0., 0., -10.),
+            Color::new(1., 1., 1.),
+        ));
 
-        assert_eq!(color, Color::black())
+        let s1 = Sphere::new();
+        w.objects.push(Box::new(s1));
+
+        let mut s2 = Sphere::new();
+        s2.mut_props().set_transform(translation(0., 0., 10.));
+        w.objects.push(Box::new(s2));
+
+        let s2_ref = w.objects.last().unwrap();
+
+        let r = Ray::new(Tuple::point(0., 0., 5.), Tuple::direction(0., 0., 1.));
+        let i = Intersection::new(4., s2_ref.as_ref());
+
+        let comps = i.prepare_computation(r);
+        let c = w.shade_hit(&comps);
+
+        assert_eq!(Color::new(0.1, 0.1, 0.1), c);
     }
 
     #[test]
-    fn color_then_ray_hits() {
-        let w = test_default_world();
-        let r = Ray::from_cords((0.0, 0.0, -5.0), (0.0, 0.0, 1.0));
-        let color = w.color_at(&r);
+    fn test_color_when_ray_miss() {
+        let w = default_world();
+        let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::direction(0.0, 1.0, 0.));
 
-        assert_eq!(color, Color::new(0.38066, 0.47583, 0.2855))
+        let c = w.color_at(r);
+
+        assert_eq!(c, Color::new(0., 0., 0.));
     }
 
     #[test]
-    fn color_with_intersection_behind_ray() {
-        let mut w = test_default_world();
-        let mut outer = w.objects.as_mut().unwrap().first().unwrap().clone();
-        outer.change_ambient(1.0);
-        let mut inner = w.objects.as_mut().unwrap().last().unwrap().clone();
-        inner.change_color(Color::new(0.1, 0.1, 0.1));
+    fn test_color_when_ray_hits() {
+        let w = default_world();
+        let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::direction(0.0, 0.0, 1.));
 
-        let r = Ray::from_cords((0.0, 0.0, 0.75), (0.0, 0.0, -1.0));
-        let color = w.color_at(&r);
+        let c = w.color_at(r);
 
-        assert_eq!(color, inner.material().color())
+        assert_eq!(c, Color::new(0.38066, 0.47583, 0.2855));
     }
 
+    #[test]
+    fn test_color_with_intersection_behind_ray() {
+        let point_light = PointLight::new(Tuple::point(-10., 10., -10.), Color::new(1., 1., 1.));
+        let mut s1 = Sphere::new();
+        s1.mut_props().set_material_color(Color::new(0.8, 1., 0.6));
+        s1.mut_props().set_material_diffuse(0.7);
+        s1.mut_props().set_material_specular(0.2);
+        s1.mut_props().set_material_ambient(1.);
+
+        let mut s2 = Sphere::new();
+        s2.mut_props().set_transform(scaling(0.5, 0.5, 0.5));
+        s2.mut_props().set_material_ambient(1.);
+
+        let mut w = World::new();
+        w.light = Some(point_light);
+        w.objects.push(Box::new(s1));
+        w.objects.push(Box::new(s2));
+
+        let ray = Ray::new(Tuple::point(0., 0., 0.75), Tuple::direction(0., 0., -1.));
+        let c = w.color_at(ray);
+
+        assert_eq!(c, s2.get_props().get_material().get_color());
+    }
 
     #[test]
-    fn no_shadow_with_no_collinear_objects() {
-        let w = test_default_world();
-        let p = Tuple::point(0.0, 10.0, 0.0);
+    fn test_no_shadow_when_nothing_collinear_with_point_and_light() {
+        let w = default_world();
+        let p = Tuple::point(0., 10., 0.);
 
         assert!(!w.is_shadowed(p));
     }
 
-
     #[test]
-    fn shadow_when_object_between_point_and_light() {
-        let w = test_default_world();
-        let p = Tuple::point(10.0, -10.0, 10.0);
+    fn test_shadow_when_object_is_between_point_and_light() {
+        let w = default_world();
+        let p = Tuple::point(10., -10., 10.);
 
         assert!(w.is_shadowed(p));
     }
 
-
     #[test]
-    fn no_shadow_when_object_behind_light() {
-        let w = test_default_world();
-        let p = Tuple::point(-20.0, -0.0, -20.0);
-
-        assert!(!w.is_shadowed(p));
-    }
-
-
-    #[test]
-    fn no_shadow_when_object_behind_point() {
-        let w = test_default_world();
-        let p = Tuple::point(-2.0, 2.0, -2.0);
+    fn test_no_shadow_when_object_is_behind_light() {
+        let w = default_world();
+        let p = Tuple::point(-20., 20., 20.);
 
         assert!(!w.is_shadowed(p));
     }
 
     #[test]
-    fn shade_hit_is_given_intersection_in_shadow() {
-        let mut w = World::new();
-        w.light = Some(PointLight::from_cords(0.0, 0.0, -10.0, Color::white()));
-        w.add_object(Sphere::new());
+    fn test_no_shadow_when_object_is_behind_point() {
+        let w = default_world();
+        let p = Tuple::point(-2., 2., 2.);
 
-        let mut s = Sphere::new();
-        s.transform(translation(0.0, 0.0, 10.0));
-        w.add_object(s.clone());
-
-        let r = Ray::from_cords((0.0, 0.0, 5.0), (0.0, 0.0, 1.0));
-        let i = Intersection::new(4.0, &s);
-        let comps = Computation::prepare(&i, &r).unwrap();
-
-        assert_eq!(w.shade_hit(&comps), Color::new(0.1, 0.1, 0.1));
+        assert!(!w.is_shadowed(p));
     }
 }

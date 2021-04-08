@@ -1,272 +1,284 @@
+use crate::math::EPSILON;
+use crate::ray::Ray;
+use crate::shape::Shape;
+use crate::tuple::Tuple;
 use std::cmp::Ordering;
 
-use crate::material::Material;
-use crate::ray::Ray;
-use crate::sphere::Sphere;
-use crate::tuple::Tuple;
-use crate::util::EPSILON;
-
 #[derive(Debug)]
-pub struct Intersection<'a> {
-    t: f64,
-    object: &'a Sphere,
-}
-
-impl<'a> std::cmp::PartialEq for Intersection<'a> {
-    fn eq(&self, other: &Self) -> bool {
-        self.t == other.t && self.object == other.object
-    }
+pub(crate) struct Intersection<'a> {
+    pub(crate) t: f64,
+    pub(crate) object: &'a dyn Shape,
 }
 
 impl<'a> Intersection<'a> {
-    pub fn new(t: f64, object: &'a Sphere) -> Intersection {
+    pub(crate) fn new(t: f64, object: &dyn Shape) -> Intersection {
         Intersection { t, object }
     }
 
-    pub fn object(&self) -> &'a Sphere {
-        self.object
-    }
+    pub(crate) fn prepare_computation(&self, ray: Ray) -> Computation {
+        let point = ray.position(self.t);
+        let eye_v = -ray.direction;
 
-    pub fn t(&self) -> f64 {
-        self.t
+        let mut normal_v = self.object.normal_at(point);
+        let mut inside = false;
+        if normal_v.dot(eye_v) < 0. {
+            inside = true;
+            normal_v = -normal_v;
+        }
+        let over_point = point + normal_v * EPSILON;
+
+        Computation::new(
+            self.t,
+            self.object,
+            point,
+            over_point,
+            eye_v,
+            normal_v,
+            inside,
+        )
     }
 }
 
 #[derive(Debug)]
-pub struct Intersections<'a> {
-    items: Vec<Intersection<'a>>
+pub(crate) struct Computation<'a> {
+    pub(crate) t: f64,
+    pub(crate) object: &'a dyn Shape,
+    pub(crate) point: Tuple,
+    pub(crate) over_point: Tuple,
+    pub(crate) eye_v: Tuple,
+    pub(crate) normal_v: Tuple,
+    pub(crate) inside: bool,
+}
+
+impl<'a> Computation<'a> {
+    fn new(
+        t: f64,
+        object: &'a dyn Shape,
+        point: Tuple,
+        over_point: Tuple,
+        eye_v: Tuple,
+        normal_v: Tuple,
+        inside: bool,
+    ) -> Computation {
+        Computation {
+            t,
+            object,
+            point,
+            over_point,
+            eye_v,
+            normal_v,
+            inside,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub(crate) struct Intersections<'a> {
+    items: Vec<Intersection<'a>>,
 }
 
 impl<'a> Intersections<'a> {
-    pub fn new(first: Intersection<'a>) -> Intersections<'a> {
-        Intersections { items: vec![first] }
+    pub(crate) fn new() -> Intersections<'a> {
+        Intersections { items: vec![] }
     }
 
-    pub fn from_intersections(i: Vec<Intersection>) -> Intersections {
-        Intersections { items: i }
+    pub(crate) fn push(&mut self, intersection: Intersection<'a>) {
+        self.items.push(intersection)
     }
 
-    pub fn add(&mut self, i: Intersection<'a>) {
-        self.items.push(i)
-    }
-
-    pub fn get(&self, i: usize) -> Option<&Intersection> {
-        Some(&self.items[i])
-    }
-
-    pub fn count(&self) -> usize {
+    pub(crate) fn len(&self) -> usize {
         self.items.len()
     }
 
-    pub fn sort(&self) {}
-
-    pub fn hit(&self) -> Option<&Intersection> {
-        let mut lowest = self.items.first().unwrap();
-
-        for intersection in self.items.iter() {
-            let t = intersection.t;
-
-            if t > 0_f64 && lowest.t < 0_f64 {
-                lowest = intersection;
-            }
-
-            if t > 0_f64 && t < lowest.t {
-                lowest = intersection;
-            }
-        }
-
-        if lowest.t < 0_f64 {
-            None
-        } else {
-            Some(lowest)
+    pub(crate) fn get(&self, index: usize) -> Option<&Intersection> {
+        match self.items.get(index) {
+            Some(intersection) => Some(intersection),
+            None => None,
         }
     }
-}
 
-pub struct Computation<'a> {
-    t: f64,
-    object: &'a Sphere,
-    pub point: Tuple,
-    pub eye_v: Tuple,
-    pub normal_v: Tuple,
-    pub inside: bool,
-    pub over_point: Tuple,
-}
+    pub(crate) fn merge(&mut self, other: Intersections<'a>) {
+        for item in other.items {
+            self.items.push(item);
+        }
+    }
 
-/// Todo: the normal_at match is a bit strange .. maybe i should take a look at that again and think if  it is possible that normal_at could fail
-impl<'a> Computation<'a> {
-    pub fn prepare(i: &'a Intersection, r: &Ray) -> Option<Computation<'a>> {
-        let point = r.position(i.t);
+    pub(crate) fn sort(&mut self) {
+        self.items.sort_by(|a, b| {
+            if a.t < b.t {
+                Ordering::Less
+            } else if a.t == b.t {
+                Ordering::Equal
+            } else {
+                Ordering::Greater
+            }
+        })
+    }
 
-        match i.object.normal_at(point) {
-            Ok(mut normal) => {
-                let eye_v = -r.direction;
-                let inside;
+    pub(crate) fn hit(&self) -> Option<&Intersection> {
+        let mut result: Option<&Intersection> = None;
 
-                if normal.dot(eye_v) < 0.0 {
-                    inside = true;
-                    normal = -normal;
-                } else {
-                    inside = false;
+        for intersection in &self.items {
+            if intersection.t > 0. {
+                match result {
+                    Some(i) => {
+                        if intersection.t < i.t {
+                            result = Some(intersection);
+                        }
+                    }
+                    None => result = Some(intersection),
                 }
-
-                let over_point = point + normal * EPSILON;
-
-                Some(Computation::new(
-                    i.t,
-                    i.object,
-                    point,
-                    -r.direction,
-                    normal,
-                    inside,
-                    over_point,
-                ))
             }
-            Err(e) => None
         }
-    }
 
-    fn new(t: f64, object: &'a Sphere, point: Tuple, eye_v_: Tuple, normal_v: Tuple, inside: bool, over_point: Tuple) -> Computation {
-        Computation { t, object, point, eye_v: eye_v_, normal_v, inside, over_point }
-    }
-
-    pub fn material(&self) -> &Material {
-        self.object.material()
+        result
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::intersection::{Computation, Intersection, Intersections};
+    use super::*;
+    use crate::math::transformation::translation;
+    use crate::math::EPSILON;
     use crate::ray::Ray;
     use crate::sphere::Sphere;
-    use crate::transformation::translation;
     use crate::tuple::Tuple;
-    use crate::util::EPSILON;
 
     #[test]
-    fn an_intersection_encapsulates_t_and_object() {
+    fn test_intersection_encapsulate_t_and_object() {
         let s = Sphere::new();
         let i = Intersection::new(3.5, &s);
 
-        assert_eq!(i.t, 3.5);
-        assert_eq!(i.object, &s)
+        assert_eq!(3.5, i.t);
+        assert_eq!(s, i.object.into());
     }
 
     #[test]
-    fn aggregating_intersections() {
+    fn test_aggregating_intersections() {
         let s = Sphere::new();
-        let i1 = Intersection::new(1.0, &s);
-        let i2 = Intersection::new(2.0, &s);
-        let mut xs = Intersections::new(i1);
-        xs.add(i2);
+        let i1 = Intersection::new(1., &s);
+        let i2 = Intersection::new(2., &s);
 
-        assert_eq!(xs.count(), 2);
-        assert_eq!(xs.items[0].t, 1.0);
-        assert_eq!(xs.items[1].t, 2.0);
-    }
+        let mut xs = Intersections::new();
+        xs.push(i1);
+        xs.push(i2);
 
-
-    #[test]
-    fn hit_when_all_intersections_have_positive_t() {
-        let sphere = Sphere::new();
-        let i1 = Intersection::new(1.0, &sphere);
-        let i2 = Intersection::new(2.0, &sphere);
-        let mut xs = Intersections::new(i1);
-        xs.add(i2);
-
-        let actual = xs.hit().unwrap();
-        assert_eq!(actual, &Intersection::new(1.0, &sphere))
+        assert_eq!(2, xs.len());
+        assert_eq!(1., xs.get(0).unwrap().t);
+        assert_eq!(2., xs.get(1).unwrap().t);
     }
 
     #[test]
-    fn hit_when_some_intersections_have_negative_t() {
-        let sphere = Sphere::new();
-        let i1 = Intersection::new(-1.0, &sphere);
-        let i2 = Intersection::new(1.0, &sphere);
-        let mut xs = Intersections::new(i1);
-        xs.add(i2);
+    fn test_hit_when_all_intersections_have_positive_t() {
+        let s = Sphere::new();
+        let i1 = Intersection::new(1., &s);
+        let i2 = Intersection::new(2., &s);
 
-        let actual = xs.hit().unwrap();
-        assert_eq!(actual, &Intersection::new(1.0, &sphere))
+        let mut xs = Intersections::new();
+        xs.push(i1);
+        xs.push(i2);
+
+        let hit = xs.hit().unwrap();
+
+        assert_eq!(1., hit.t);
     }
 
     #[test]
-    fn hit_when_all_intersections_have_negative_t() {
-        let sphere = Sphere::new();
-        let i1 = Intersection::new(-1.0, &sphere);
-        let i2 = Intersection::new(-2.0, &sphere);
-        let mut xs = Intersections::new(i1);
-        xs.add(i2);
+    fn test_hit_when_some_intersections_have_negative_t() {
+        let s = Sphere::new();
+        let i1 = Intersection::new(-1., &s);
+        let i2 = Intersection::new(1., &s);
 
-        let actual = xs.hit();
-        assert!(actual.is_none())
+        let mut xs = Intersections::new();
+        xs.push(i1);
+        xs.push(i2);
+
+        let hit = xs.hit().unwrap();
+
+        assert_eq!(1., hit.t);
     }
 
     #[test]
-    fn hit_is_always_lowest_non_negative_value() {
-        let sphere = Sphere::new();
-        let i1 = Intersection::new(5.0, &sphere);
-        let i2 = Intersection::new(7.0, &sphere);
-        let i3 = Intersection::new(-3.0, &sphere);
-        let i4 = Intersection::new(2.0, &sphere);
-        let mut xs = Intersections::new(i1);
-        xs.add(i2);
-        xs.add(i3);
-        xs.add(i4);
+    fn test_hit_when_all_intersections_have_negative_t() {
+        let s = Sphere::new();
+        let i1 = Intersection::new(-1., &s);
+        let i2 = Intersection::new(-2., &s);
 
-        let actual = xs.hit().unwrap();
-        assert_eq!(actual, &Intersection::new(2.0, &sphere))
+        let mut xs = Intersections::new();
+        xs.push(i1);
+        xs.push(i2);
+
+        assert!(xs.hit().is_none());
     }
 
     #[test]
-    fn pre_computing_the_state_of_an_intersection() {
-        let r = Ray::from_cords((0.0, 0.0, -5.0), (0.0, 0.0, 1.0));
-        let shape = Sphere::new();
-        let i = Intersection::new(4.0, &shape);
+    fn test_hit_is_always_lowest_negative_value() {
+        let s = Sphere::new();
+        let i1 = Intersection::new(5., &s);
+        let i2 = Intersection::new(7., &s);
+        let i3 = Intersection::new(-3., &s);
+        let i4 = Intersection::new(2., &s);
 
-        let comps = Computation::prepare(&i, &r).unwrap();
-        assert_eq!(comps.t, 4.0);
-        assert_eq!(*comps.object, shape);
-        assert_eq!(comps.point, Tuple::point(0.0, 0.0, -1.0));
-        assert_eq!(comps.eye_v, Tuple::vector(0.0, 0.0, -1.0));
-        assert_eq!(comps.normal_v, Tuple::vector(0.0, 0.0, -1.0));
+        let mut xs = Intersections::new();
+        xs.push(i1);
+        xs.push(i2);
+        xs.push(i3);
+        xs.push(i4);
+
+        let hit = xs.hit().unwrap();
+
+        assert_eq!(2., hit.t);
     }
 
     #[test]
-    fn hit_when_intersection_outside() {
-        let r = Ray::from_cords((0.0, 0.0, -5.0), (0.0, 0.0, 1.0));
-        let shape = Sphere::new();
-        let i = Intersection::new(4.0, &shape);
+    fn test_precomputing_state_of_intersection() {
+        let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::direction(0., 0., 1.));
+        let s = Sphere::new();
+        let i = Intersection::new(4., &s);
 
-        let comps = Computation::prepare(&i, &r).unwrap();
-        assert_eq!(comps.inside, false);
+        let computation = i.prepare_computation(r);
+
+        assert!(std::ptr::eq(i.object, computation.object));
+        assert_eq!(computation.point, Tuple::point(0., 0., -1.));
+        assert_eq!(computation.eye_v, Tuple::direction(0., 0., -1.));
+        assert_eq!(computation.normal_v, Tuple::direction(0., 0., -1.));
     }
 
     #[test]
-    fn hit_when_intersection_inside() {
-        let r = Ray::from_cords((0.0, 0.0, 0.0), (0.0, 0.0, 1.0));
-        let shape = Sphere::new();
-        let i = Intersection::new(1.0, &shape);
+    fn test_hit_when_intersection_occurs_on_outside() {
+        let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::direction(0., 0., 1.));
+        let s = Sphere::new();
+        let i = Intersection::new(4., &s);
 
-        let comps = Computation::prepare(&i, &r).unwrap();
-        assert_eq!(comps.inside, true);
-        assert_eq!(comps.point, Tuple::point(0.0, 0.0, 1.0));
-        assert_eq!(comps.eye_v, Tuple::vector(0.0, 0.0, -1.0));
-        assert_eq!(comps.normal_v, Tuple::vector(0.0, 0.0, -1.0));
+        let comps = i.prepare_computation(r);
+
+        assert!(!comps.inside);
     }
 
     #[test]
-    fn hit_should_offset_point() {
-        let r = Ray::from_cords((0.0, 0.0, -5.0), (0.0, 0.0, 1.0));
+    fn test_hit_when_intersection_occurs_on_inside() {
+        let r = Ray::new(Tuple::point(0., 0., 0.), Tuple::direction(0., 0., 1.));
+        let s = Sphere::new();
+        let i = Intersection::new(1., &s);
+
+        let comps = i.prepare_computation(r);
+
+        assert!(comps.inside);
+        assert_eq!(comps.point, Tuple::point(0., 0., 1.));
+        assert_eq!(comps.eye_v, Tuple::direction(0., 0., -1.));
+        assert_eq!(comps.normal_v, Tuple::direction(0., 0., -1.));
+    }
+
+    #[test]
+    fn test_hit_should_offset_point() {
+        let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::direction(0., 0., 1.));
         let mut shape = Sphere::new();
+        shape.mut_props().set_transform(translation(0., 0., 1.));
 
-        shape.transform(translation(0.0, 0.0, 1.0));
-        let i = Intersection::new(5.0, &shape);
+        let i = Intersection::new(5., &shape);
+        let comps = i.prepare_computation(r);
 
-        let comps = Computation::prepare(&i, &r).unwrap();
-
-        assert!(comps.over_point.z < -EPSILON / 2.0);
-        assert!(comps.point.z > comps.over_point.z);
+        assert!(comps.over_point.z < -EPSILON / 2.);
+        assert!(comps.point.z > comps.over_point.z)
     }
 }

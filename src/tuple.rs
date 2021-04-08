@@ -1,327 +1,396 @@
-use crate::util::f64_eq;
+use crate::math::f64_eq;
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
-#[derive(Debug, Copy, Clone)]
-pub struct Tuple {
-    pub x: f64,
-    pub y: f64,
-    pub z: f64,
-    pub w: f64,
+#[derive(Copy, Clone, Debug)]
+pub(crate) struct Tuple {
+    pub(crate) x: f64,
+    pub(crate) y: f64,
+    pub(crate) z: f64,
+    pub(crate) w: f64,
 }
 
 impl Tuple {
-    pub fn new(x: f64, y: f64, z: f64, w: f64) -> Tuple {
+    pub(crate) fn new(x: f64, y: f64, z: f64, w: f64) -> Tuple {
         Tuple { x, y, z, w }
     }
 
-    pub fn point(x: f64, y: f64, z: f64) -> Tuple {
-        Tuple::new(x, y, z, 1_f64)
+    pub(crate) fn point(x: f64, y: f64, z: f64) -> Tuple {
+        Tuple::new(x, y, z, 1.)
     }
 
-    pub fn origin_point() -> Tuple {
-        Tuple::point(0.0, 0.0, 0.0)
+    pub(crate) fn direction(x: f64, y: f64, z: f64) -> Tuple {
+        Tuple::new(x, y, z, 0.)
     }
 
-    pub fn vector(x: f64, y: f64, z: f64) -> Tuple {
-        Tuple::new(x, y, z, 0_f64)
+    pub(crate) fn is_point(&self) -> bool {
+        return self.w == 1.;
     }
 
-    pub fn xyz(&self) -> (f64, f64, f64) {
-        (self.x, self.y, self.z)
+    pub(crate) fn is_direction(&self) -> bool {
+        return self.w == 0.;
     }
 
-    pub fn is_point(&self) -> bool {
-        self.w == 1_f64
+    pub(crate) fn magnitude(&self) -> f64 {
+        let total = self.x.powi(2) + self.y.powi(2) + self.z.powi(2) + self.w.powi(2);
+
+        total.sqrt()
     }
 
-    pub fn is_vector(&self) -> bool {
-        self.w == 0_f64
+    pub(crate) fn normalize(&self) -> Tuple {
+        let x = self.x / self.magnitude();
+        let y = self.y / self.magnitude();
+        let z = self.z / self.magnitude();
+        let w = self.w / self.magnitude();
+
+        Tuple::new(x, y, z, w)
     }
 
-    pub fn magnitude(&self) -> f64 {
-        (self.x.powi(2) + self.y.powi(2) + self.z.powi(2) + self.w.powi(2)).sqrt()
-    }
-
-    pub fn reflect(&self, other: Tuple) -> Tuple {
-        return *self - other * 2.0 * self.dot(other);
-    }
-
-    pub fn normalize(&self) -> Tuple {
-        let mag = self.magnitude();
-
-        Tuple {
-            x: self.x / mag,
-            y: self.y / mag,
-            z: self.z / mag,
-            w: self.w / mag,
-        }
-    }
-
-    pub fn dot(&self, other: Tuple) -> f64 {
+    pub(crate) fn dot(&self, other: Tuple) -> f64 {
         self.x * other.x + self.y * other.y + self.z * other.z + self.w * other.w
     }
 
-    pub fn cross(&self, other: Tuple) -> Tuple {
-        Tuple::vector(self.y * other.z - self.z * other.y,
-                      self.z * other.x - self.x * other.z,
-                      self.x * other.y - self.y * other.x)
+    pub(crate) fn cross(&self, other: Tuple) -> Tuple {
+        let x = self.y * other.z - self.z * other.y;
+        let y = self.z * other.x - self.x * other.z;
+        let z = self.x * other.y - self.y * other.x;
+
+        Tuple::direction(x, y, z)
+    }
+
+    pub(crate) fn reflect(&self, normal: Tuple) -> Tuple {
+        *self - normal * 2. * self.dot(normal)
     }
 }
 
-impl std::cmp::PartialEq for Tuple {
+impl PartialEq for Tuple {
     fn eq(&self, other: &Self) -> bool {
-        f64_eq(self.x, other.x) &&
-            f64_eq(self.y, other.y) &&
-            f64_eq(self.z, other.z) &&
-            self.w == other.w
+        f64_eq(self.x, other.x)
+            && f64_eq(self.y, other.y)
+            && f64_eq(self.z, other.z)
+            && self.w == other.w
     }
 }
 
-impl std::ops::Add for Tuple {
-    type Output = Self;
+impl Add for Tuple {
+    type Output = Tuple;
 
     fn add(self, rhs: Self) -> Self::Output {
-        Tuple {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-            w: self.w + rhs.w,
-        }
+        let x = self.x + rhs.x;
+        let y = self.y + rhs.y;
+        let z = self.z + rhs.z;
+        let w = self.w + rhs.w;
+
+        Tuple::new(x, y, z, w)
     }
 }
 
-impl std::ops::Sub for Tuple {
-    type Output = Self;
+impl Sub for Tuple {
+    type Output = Tuple;
 
     fn sub(self, rhs: Self) -> Self::Output {
-        Tuple {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-            w: self.w - rhs.w,
-        }
+        let x = self.x - rhs.x;
+        let y = self.y - rhs.y;
+        let z = self.z - rhs.z;
+        let w = self.w - rhs.w;
+
+        Tuple::new(x, y, z, w)
     }
 }
 
-impl std::ops::Mul<f64> for Tuple {
-    type Output = Self;
-
-    fn mul(self, rhs: f64) -> Self::Output {
-        Tuple {
-            x: self.x * rhs,
-            y: self.y * rhs,
-            z: self.z * rhs,
-            w: self.w * rhs,
-        }
-    }
-}
-
-impl std::ops::Div<f64> for Tuple {
-    type Output = Self;
-
-    fn div(self, rhs: f64) -> Self::Output {
-        Tuple {
-            x: self.x / rhs,
-            y: self.y / rhs,
-            z: self.z / rhs,
-            w: self.w / rhs,
-        }
-    }
-}
-
-
-impl std::ops::Neg for Tuple {
-    type Output = Self;
+impl Neg for Tuple {
+    type Output = Tuple;
 
     fn neg(self) -> Self::Output {
-        Tuple {
-            x: -self.x,
-            y: -self.y,
-            z: -self.z,
-            w: -self.w,
-        }
+        let x = -self.x;
+        let y = -self.y;
+        let z = -self.z;
+        let w = -self.w;
+
+        Tuple::new(x, y, z, w)
+    }
+}
+
+impl Mul<f64> for Tuple {
+    type Output = Tuple;
+
+    fn mul(self, rhs: f64) -> Self::Output {
+        let x = self.x * rhs;
+        let y = self.y * rhs;
+        let z = self.z * rhs;
+        let w = self.w * rhs;
+
+        Tuple::new(x, y, z, w)
+    }
+}
+
+impl Div<f64> for Tuple {
+    type Output = Tuple;
+
+    fn div(self, rhs: f64) -> Self::Output {
+        let x = self.x / rhs;
+        let y = self.y / rhs;
+        let z = self.z / rhs;
+        let w = self.w / rhs;
+
+        Tuple::new(x, y, z, w)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::tuple::*;
+    use super::*;
 
     #[test]
-    fn a_tuple_with_w_equals_1_is_a_point() {
-        let a = Tuple::new(1_f64, 2_f64, 3_f64, 1_f64);
+    fn test_tuple_with_w_equals_1_is_point() {
+        let p: Tuple = Tuple::new(4.3, -4.2, 3.1, 1.);
 
-        assert_eq!(1_f64, a.x);
-        assert_eq!(2_f64, a.y);
-        assert_eq!(3_f64, a.z);
-        assert_eq!(1_f64, a.w);
-        assert!(a.is_point());
-        assert!(!a.is_vector());
+        assert_eq!(p.x, 4.3);
+        assert_eq!(p.y, -4.2);
+        assert_eq!(p.z, 3.1);
+        assert!(p.is_point());
+        assert!(!p.is_direction());
     }
 
     #[test]
-    fn a_tuple_with_w_equals_0_is_a_vector() {
-        let a = Tuple::new(1_f64, 2_f64, 3_f64, 0_f64);
+    fn test_tuple_with_w_equals_0_is_direction() {
+        let d = Tuple::new(4.3, -4.2, 3.1, 0.);
 
-        assert_eq!(1_f64, a.x);
-        assert_eq!(2_f64, a.y);
-        assert_eq!(3_f64, a.z);
-        assert_eq!(0_f64, a.w);
-        assert!(a.is_vector());
-        assert!(!a.is_point());
+        assert_eq!(d.x, 4.3);
+        assert_eq!(d.y, -4.2);
+        assert_eq!(d.z, 3.1);
+        assert!(d.is_direction());
+        assert!(!d.is_point());
     }
 
     #[test]
-    fn point_fn_creates_point() {
-        let a = Tuple::new(1_f64, 2_f64, 3_f64, 1_f64);
-        let b = Tuple::point(1_f64, 2_f64, 3_f64);
+    fn test_point_has_factory_fn() {
+        let p: Tuple = Tuple::point(4.3, -4.2, 3.1);
+        let c: Tuple = Tuple::new(4.3, -4.2, 3.1, 1.);
 
-        assert_eq!(b, a)
+        assert_eq!(p, c);
     }
 
     #[test]
-    fn vector_fn_creates_vector() {
-        let a = Tuple::new(1_f64, 2_f64, 3_f64, 0_f64);
-        let b = Tuple::vector(1_f64, 2_f64, 3_f64);
+    fn test_direction_has_factory_fn() {
+        let p: Tuple = Tuple::direction(4.3, -4.2, 3.1);
+        let c: Tuple = Tuple::new(4.3, -4.2, 3.1, 0.);
 
-        assert_eq!(b, a)
+        assert_eq!(p, c);
     }
 
     #[test]
-    fn adding_two_tuples() {
-        let a = Tuple::new(2_f64, 3_f64, -4_f64, 1_f64);
-        let b = Tuple::new(1_f64, 2_f64, 3_f64, 0_f64);
-        let c = Tuple::new(3_f64, 5_f64, -1_f64, 1_f64);
+    fn test_add_two_tuples() {
+        let a = Tuple::new(3., -2., 5., 1.);
+        let b = Tuple::new(-2., 3., 1., 0.);
 
-        assert_eq!(c, a + b)
+        let e = Tuple::new(1., 1., 6., 1.);
+        let r = a + b;
+
+        assert_eq!(e, r);
     }
 
     #[test]
-    fn subtracting_two_tuples() {
-        let a = Tuple::new(2_f64, 3_f64, -4_f64, 1_f64);
-        let b = Tuple::new(1_f64, 2_f64, 3_f64, 0_f64);
-        let c = Tuple::new(1_f64, 1_f64, -7_f64, 1_f64);
+    fn test_subtract_two_points() {
+        let a = Tuple::point(3., 2., 1.);
+        let b = Tuple::point(5., 6., 7.);
 
-        assert_eq!(c, a - b)
+        let e = Tuple::direction(-2., -4., -6.);
+        let r = a - b;
+
+        assert_eq!(e, r);
+    }
+
+    #[test]
+    fn test_subtract_direction_from_point() {
+        let a = Tuple::point(3., 2., 1.);
+        let b = Tuple::direction(5., 6., 7.);
+
+        let e = Tuple::point(-2., -4., -6.);
+        let r = a - b;
+
+        assert_eq!(e, r);
+    }
+
+    #[test]
+    fn test_subtract_two_directions() {
+        let a = Tuple::direction(3., 2., 1.);
+        let b = Tuple::direction(5., 6., 7.);
+
+        let e = Tuple::direction(-2., -4., -6.);
+        let r = a - b;
+
+        assert_eq!(e, r);
     }
 
     #[test]
     fn negating_tuple() {
-        let a = Tuple::new(1_f64, -2_f64, 3_f64, -4_f64);
-        let b = Tuple::new(-1_f64, 2_f64, -3_f64, 4_f64);
+        let a = Tuple::new(1., 2., 3., -4.);
 
-        assert_eq!(b, -a)
+        let e = Tuple::new(-1., -2., -3., 4.);
+        let r = -a;
+
+        assert_eq!(e, r);
     }
 
     #[test]
-    fn multiply_tuple_by_scalar() {
-        let a = Tuple::new(1_f64, -2_f64, 3_f64, -4_f64);
-        let b = 3.5;
-        let c = a * b;
-        let d = Tuple::new(3.5, -7_f64, 10.5, -14_f64);
+    fn test_mul_tuple_by_scalar() {
+        let a = Tuple::new(1., -2., 3., -4.);
 
-        assert_eq!(d, c)
+        let e = Tuple::new(3.5, -7., 10.5, -14.);
+        let r = a * 3.5;
+
+        assert_eq!(e, r);
     }
 
     #[test]
-    fn multiply_tuple_by_fraction() {
-        let a = Tuple::new(1_f64, -2_f64, 3_f64, -4_f64);
-        let b = 0.5;
-        let c = Tuple::new(0.5, -1_f64, 1.5, -2_f64);
+    fn test_mul_tuple_by_faction() {
+        let a = Tuple::new(1., -2., 3., -4.);
 
-        assert_eq!(c, a * b)
+        let e = Tuple::new(0.5, -1., 1.5, -2.);
+        let r = a * 0.5;
+
+        assert_eq!(e, r);
     }
 
     #[test]
-    fn dividing_tuple_by_scalar() {
-        let a = Tuple::new(1_f64, -2_f64, 3_f64, -4_f64);
-        let b = 2_f64;
-        let c = Tuple::new(0.5, -1_f64, 1.5, -2_f64);
+    fn test_div_tuple_by_scalar() {
+        let a = Tuple::new(1., -2., 3., -4.);
 
-        assert_eq!(c, a / b)
+        let e = Tuple::new(0.5, -1., 1.5, -2.);
+        let r = a / 2.;
+
+        assert_eq!(e, r);
     }
 
     #[test]
-    fn computing_magnitude_of_vector() {
-        let a = Tuple::vector(1_f64, 0_f64, 0_f64);
-        let b = Tuple::vector(0_f64, 1_f64, 0_f64);
-        let c = Tuple::vector(0_f64, 0_f64, 1_f64);
-        let d = Tuple::vector(1_f64, 2_f64, 3_f64);
-        let e = Tuple::vector(-1_f64, -2_f64, -3_f64);
+    fn test_compute_magnitude_1() {
+        let d = Tuple::direction(1., 0., 0.);
 
-        let f = 14_f64;
+        let e = 1.;
+        let r = d.magnitude();
 
-        assert_eq!(1_f64, a.magnitude());
-        assert_eq!(1_f64, b.magnitude());
-        assert_eq!(1_f64, c.magnitude());
-        assert_eq!(d.magnitude(), f.sqrt());
-        assert_eq!(e.magnitude(), f.sqrt());
+        assert_eq!(e, r);
     }
 
     #[test]
-    fn normalize_vector_one() {
-        let a = Tuple::vector(4_f64, 0_f64, 0_f64);
-        let expected = Tuple::vector(1_f64, 0_f64, 0_f64);
-        let actual = a.normalize();
+    fn test_compute_magnitude_2() {
+        let d = Tuple::direction(0., 1., 0.);
 
-        assert_eq!(expected, actual);
+        let e = 1.;
+        let r = d.magnitude();
+
+        assert_eq!(e, r);
     }
 
     #[test]
-    fn normalize_vector_two() {
-        let a = Tuple::vector(1_f64, 2_f64, 3_f64);
+    fn test_compute_magnitude_3() {
+        let d = Tuple::direction(0., 0., 1.);
 
-        let expected = Tuple::vector(1_f64 / 14_f64.sqrt(), 2_f64 / 14_f64.sqrt(), 3_f64 / 14_f64.sqrt());
-        let actual = a.normalize();
+        let e = 1.;
+        let r = d.magnitude();
 
-        assert_eq!(expected, actual);
+        assert_eq!(e, r);
     }
 
     #[test]
-    fn magnitude_of_normalized_vector() {
-        let a = Tuple::vector(1_f64, 2_f64, 3_f64);
-        let normalized = a.normalize();
+    fn test_compute_magnitude_4() {
+        let d = Tuple::direction(1., 2., 3.);
 
-        assert_eq!(1_f64, normalized.magnitude());
+        let e = (14_f64).sqrt();
+        let r = d.magnitude();
+
+        assert_eq!(e, r);
     }
 
     #[test]
-    fn dot_product_of_two_tuples() {
-        let a = Tuple::vector(1_f64, 2_f64, 3_f64);
-        let b = Tuple::vector(2_f64, 3_f64, 4_f64);
-        let c = a.dot(b);
+    fn test_compute_magnitude_5() {
+        let d = Tuple::direction(-1., -2., -3.);
 
-        assert_eq!(20_f64, c)
+        let e = (14_f64).sqrt();
+        let r = d.magnitude();
+
+        assert_eq!(e, r);
     }
 
     #[test]
-    fn cross_product_of_two_vectors() {
-        let a = Tuple::vector(1_f64, 2_f64, 3_f64);
-        let b = Tuple::vector(2_f64, 3_f64, 4_f64);
-        let c = Tuple::vector(-1_f64, 2_f64, -1_f64);
-        let d = Tuple::vector(1_f64, -2_f64, 1_f64);
-        let e = a.cross(b);
-        let f = b.cross(a);
+    fn test_normalize_1() {
+        let d = Tuple::direction(4., 0., 0.);
 
-        assert_eq!(e, c);
-        assert_eq!(d, f);
+        let e = Tuple::direction(1., 0., 0.);
+        let r = d.normalize();
+
+        assert_eq!(e, r);
     }
 
     #[test]
-    fn reflecting_a_vector_approaching_at_45_degree() {
-        let v = Tuple::vector(1.0, -1.0, 0.0);
-        let n = Tuple::vector(0.0, 1.0, 0.0);
-        let r = v.reflect(n);
+    fn test_normalize_2() {
+        let d = Tuple::direction(1., 2., 3.);
 
-        assert_eq!(r, Tuple::vector(1.0, 1.0, 0.0));
+        let e = Tuple::direction(0.26726, 0.53452, 0.80178);
+        let r = d.normalize();
+
+        assert_eq!(e, r);
     }
 
     #[test]
-    fn reflecting_a_vector_off_a_slanted_surface() {
-        let a = 2_f64.sqrt() / 2.0;
-        let v = Tuple::vector(0.0, -1.0, 0.0);
-        let n = Tuple::vector(a, a, 0.0);
-        let r = v.reflect(n);
+    fn test_magnitude_of_normalized_vector() {
+        let d = Tuple::direction(1., 2., 3.);
+        let n = d.normalize();
 
-        assert_eq!(r, Tuple::vector(1.0, 0.0, 0.0));
+        let r = n.magnitude();
+        let e = 1f64;
+
+        assert!(f64_eq(e, r));
+    }
+
+    #[test]
+    fn test_dot_product_of_directions() {
+        let a = Tuple::direction(1., 2., 3.);
+        let b = Tuple::direction(2., 3., 4.);
+
+        let e = 20f64;
+        let r = a.dot(b);
+
+        assert_eq!(e, r);
+    }
+
+    #[test]
+    fn test_cross_product_1() {
+        let a = Tuple::direction(1., 2., 3.);
+        let b = Tuple::direction(2., 3., 4.);
+
+        let e = Tuple::direction(-1., 2., -1.);
+        let r = a.cross(b);
+
+        assert_eq!(e, r);
+    }
+
+    #[test]
+    fn test_cross_product_2() {
+        let a = Tuple::direction(1., 2., 3.);
+        let b = Tuple::direction(2., 3., 4.);
+
+        let e = Tuple::direction(1., -2., 1.);
+        let r = b.cross(a);
+
+        assert_eq!(e, r);
+    }
+
+    #[test]
+    fn test_reflecting_direction_approaching_at_45_degree() {
+        let d = Tuple::direction(1., -1., 0.);
+        let n = Tuple::direction(0., 1., 0.);
+
+        let e = Tuple::direction(1., 1., 0.);
+        assert_eq!(e, d.reflect(n))
+    }
+
+    #[test]
+    fn test_reflecting_direction_off_slanted_surface() {
+        let d = Tuple::direction(0., -1., 0.);
+        let n = Tuple::direction(2f64.sqrt() / 2., 2f64.sqrt() / 2., 0.);
+
+        let e = Tuple::direction(1., 0., 0.);
+        assert_eq!(e, d.reflect(n))
     }
 }
