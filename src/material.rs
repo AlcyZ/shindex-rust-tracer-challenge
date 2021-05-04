@@ -1,38 +1,50 @@
 use crate::color::Color;
 use crate::light::PointLight;
 use crate::math::f64_eq;
+use crate::pattern::Pattern;
+use crate::shape::Shape;
 use crate::tuple::Tuple;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Debug)]
 pub(crate) struct Material {
     color: Color,
+    pattern: Option<Box<dyn Pattern>>,
     ambient: f64,
     diffuse: f64,
     specular: f64,
     shininess: f64,
+    reflective: f64,
 }
 
 impl Material {
     pub(crate) fn new() -> Material {
         Material {
             color: Color::new(1., 1., 1.),
+            pattern: None,
             ambient: 0.1,
             diffuse: 0.9,
             specular: 0.9,
             shininess: 200.,
+            reflective: 0.0,
         }
     }
 
     pub(crate) fn lighting(
         &self,
+        object: &dyn Shape,
         light: PointLight,
         position: Tuple,
         eye_v: Tuple,
         normal_v: Tuple,
         in_shadow: bool,
     ) -> Color {
+        let color = match &self.pattern {
+            Some(pattern) => pattern.pattern_at_shape(object, position),
+            None => self.color,
+        };
+
         // combine the surface color with the light's color/intensity
-        let effective_color = self.color * light.intensity;
+        let effective_color = color * light.intensity;
 
         // find the direction to the light source
         let light_v = (light.position - position).normalize();
@@ -105,6 +117,18 @@ impl Material {
     pub(crate) fn _set_shininess(&mut self, new: f64) {
         self.shininess = new
     }
+
+    pub(crate) fn get_reflective(&self) -> f64 {
+        self.reflective
+    }
+
+    pub(crate) fn set_reflective(&mut self, new: f64) {
+        self.reflective = new
+    }
+
+    pub(crate) fn set_pattern(&mut self, new: Box<dyn Pattern>) {
+        self.pattern = Some(new)
+    }
 }
 
 impl PartialEq for Material {
@@ -122,6 +146,8 @@ mod tests {
     use super::*;
     use crate::color::Color;
     use crate::light::PointLight;
+    use crate::pattern::stripe::StripePattern;
+    use crate::sphere::Sphere;
     use crate::tuple::Tuple;
 
     #[test]
@@ -140,12 +166,13 @@ mod tests {
         let m = Material::new();
         let position = Tuple::point(0., 0., 0.);
         let in_shadow = false;
+        let object = Sphere::new();
 
         let eye_v = Tuple::direction(0., 0., -1.);
         let normal_v = Tuple::direction(0., 0., -1.);
         let light = PointLight::new(Tuple::point(0., 0., -10.), Color::new(1., 1., 1.));
 
-        let r = m.lighting(light, position, eye_v, normal_v, in_shadow);
+        let r = m.lighting(&object, light, position, eye_v, normal_v, in_shadow);
         assert_eq!(Color::new(1.9, 1.9, 1.9), r);
     }
 
@@ -154,12 +181,13 @@ mod tests {
         let m = Material::new();
         let position = Tuple::point(0., 0., 0.);
         let in_shadow = false;
+        let object = Sphere::new();
 
         let eye_v = Tuple::direction(0., 2f64.sqrt() / 2., -2f64.sqrt() / 2.);
         let normal_v = Tuple::direction(0., 0., -1.);
         let light = PointLight::new(Tuple::point(0., 0., -10.), Color::new(1., 1., 1.));
 
-        let r = m.lighting(light, position, eye_v, normal_v, in_shadow);
+        let r = m.lighting(&object, light, position, eye_v, normal_v, in_shadow);
         assert_eq!(Color::new(1.0, 1.0, 1.0), r);
     }
 
@@ -168,12 +196,13 @@ mod tests {
         let m = Material::new();
         let position = Tuple::point(0., 0., 0.);
         let in_shadow = false;
+        let object = Sphere::new();
 
         let eye_v = Tuple::direction(0., 0., -1.);
         let normal_v = Tuple::direction(0., 0., -1.);
         let light = PointLight::new(Tuple::point(0., 10., -10.), Color::new(1., 1., 1.));
 
-        let r = m.lighting(light, position, eye_v, normal_v, in_shadow);
+        let r = m.lighting(&object, light, position, eye_v, normal_v, in_shadow);
         assert_eq!(Color::new(0.7364, 0.7364, 0.7364), r);
     }
 
@@ -182,12 +211,13 @@ mod tests {
         let m = Material::new();
         let position = Tuple::point(0., 0., 0.);
         let in_shadow = false;
+        let object = Sphere::new();
 
         let eye_v = Tuple::direction(0., -2f64.sqrt() / 2., -2f64.sqrt() / 2.);
         let normal_v = Tuple::direction(0., 0., -1.);
         let light = PointLight::new(Tuple::point(0., 10., -10.), Color::new(1., 1., 1.));
 
-        let r = m.lighting(light, position, eye_v, normal_v, in_shadow);
+        let r = m.lighting(&object, light, position, eye_v, normal_v, in_shadow);
         assert_eq!(Color::new(1.636396, 1.636396, 1.636396), r);
     }
 
@@ -196,12 +226,13 @@ mod tests {
         let m = Material::new();
         let position = Tuple::point(0., 0., 0.);
         let in_shadow = false;
+        let object = Sphere::new();
 
         let eye_v = Tuple::direction(0., 0., -1.);
         let normal_v = Tuple::direction(0., 0., -1.);
         let light = PointLight::new(Tuple::point(0., 0., 10.), Color::new(1., 1., 1.));
 
-        let r = m.lighting(light, position, eye_v, normal_v, in_shadow);
+        let r = m.lighting(&object, light, position, eye_v, normal_v, in_shadow);
         assert_eq!(Color::new(0.1, 0.1, 0.1), r);
     }
 
@@ -210,12 +241,57 @@ mod tests {
         let m = Material::new();
         let position = Tuple::point(0., 0., 0.);
         let in_shadow = true;
+        let object = Sphere::new();
 
         let eye_v = Tuple::direction(0., 0., -1.);
         let normal_v = Tuple::direction(0., 0., -1.);
         let light = PointLight::new(Tuple::point(0., 0., -10.), Color::new(1., 1., 1.));
 
-        let r = m.lighting(light, position, eye_v, normal_v, in_shadow);
+        let r = m.lighting(&object, light, position, eye_v, normal_v, in_shadow);
         assert_eq!(Color::new(0.1, 0.1, 0.1), r);
+    }
+
+    #[test]
+    fn test_lighting_with_pattern_applied() {
+        let object = Sphere::new();
+        let mut m = Material::new();
+        m.set_pattern(Box::new(StripePattern::new(
+            Color::new(1., 1., 1.),
+            Color::new(0., 0., 0.),
+        )));
+        m.set_ambient(1.);
+        m.set_diffuse(0.);
+        m.set_specular(0.);
+
+        let eye_v = Tuple::direction(0., 0., -1.);
+        let normal_v = Tuple::direction(0., 0., -1.);
+        let light = PointLight::new(Tuple::point(0., 0., -10.), Color::new(1., 1., 1.));
+
+        let c1 = m.lighting(
+            &object,
+            light,
+            Tuple::point(0.9, 0., 0.),
+            eye_v,
+            normal_v,
+            false,
+        );
+        let c2 = m.lighting(
+            &object,
+            light,
+            Tuple::point(1.1, 0., 0.),
+            eye_v,
+            normal_v,
+            false,
+        );
+
+        assert_eq!(Color::new(1., 1., 1.), c1);
+        assert_eq!(Color::new(0., 0., 0.), c2);
+    }
+
+    #[test]
+    fn test_reflectivity_of_default_material() {
+        let m = Material::new();
+
+        assert_eq!(0., m.reflective);
     }
 }

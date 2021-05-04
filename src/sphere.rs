@@ -3,7 +3,7 @@ use crate::ray::Ray;
 use crate::shape::{Shape, ShapeProps};
 use crate::tuple::Tuple;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Debug)]
 pub(crate) struct Sphere {
     props: ShapeProps,
 }
@@ -55,14 +55,6 @@ impl Shape for Sphere {
 impl PartialEq for Sphere {
     fn eq(&self, other: &Self) -> bool {
         self.get_id() == other.get_id()
-    }
-}
-
-impl From<&dyn Shape> for Sphere {
-    fn from(shape: &dyn Shape) -> Self {
-        Sphere {
-            props: shape.get_props().clone(),
-        }
     }
 }
 
@@ -141,8 +133,8 @@ mod tests {
 
         let xs = s.local_intersect(r).unwrap();
 
-        assert_eq!(s, xs.get(0).unwrap().object.into());
-        assert_eq!(s, xs.get(1).unwrap().object.into());
+        assert_eq!(s.get_id(), xs.get(0).unwrap().object.get_id());
+        assert_eq!(s.get_id(), xs.get(1).unwrap().object.get_id());
     }
 
     #[test]

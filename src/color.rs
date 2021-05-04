@@ -12,6 +12,10 @@ impl Color {
     pub(crate) fn new(red: f64, green: f64, blue: f64) -> Color {
         Color { red, green, blue }
     }
+
+    pub(crate) fn white() -> Color {
+        Color::new(1., 1., 1.)
+    }
 }
 
 impl PartialEq for Color {

@@ -2,12 +2,13 @@ use crate::color::Color;
 use crate::intersection::Intersections;
 use crate::material::Material;
 use crate::math::matrix::M4;
+use crate::pattern::Pattern;
 use crate::ray::Ray;
 use crate::tuple::Tuple;
 use std::fmt::Debug;
 use uuid::Uuid;
 
-pub(crate) trait Shape: Debug {
+pub(crate) trait Shape: Debug + Sync + Send {
     fn get_props(&self) -> &ShapeProps;
 
     fn mut_props(&mut self) -> &mut ShapeProps;
@@ -38,7 +39,7 @@ pub(crate) trait Shape: Debug {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Debug)]
 pub(crate) struct ShapeProps {
     id: Uuid,
     transform: M4,
@@ -62,8 +63,8 @@ impl ShapeProps {
         self.transform = new
     }
 
-    pub(crate) fn get_material(&self) -> Material {
-        self.material
+    pub(crate) fn get_material(&self) -> &Material {
+        &self.material
     }
 
     pub(crate) fn set_material(&mut self, new: Material) {
@@ -86,8 +87,16 @@ impl ShapeProps {
         self.material.set_specular(new);
     }
 
+    pub(crate) fn set_material_reflective(&mut self, new: f64) {
+        self.material.set_reflective(new);
+    }
+
     pub(crate) fn _set_material_shininess(&mut self, new: f64) {
         self.material._set_shininess(new);
+    }
+
+    pub(crate) fn set_pattern(&mut self, new: Box<dyn Pattern>) {
+        self.material.set_pattern(new)
     }
 }
 
@@ -159,10 +168,12 @@ mod tests {
         let mut s = TestShape::new();
         let mut other = Material::new();
         other.set_ambient(1.);
-
         s.props.set_material(other);
 
-        assert_eq!(s.props.material, other);
+        let mut e = Material::new();
+        e.set_ambient(1.);
+
+        assert_eq!(s.props.material, e);
     }
 
     #[test]

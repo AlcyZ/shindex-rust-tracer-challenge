@@ -49,14 +49,6 @@ impl PartialEq for Plane {
     }
 }
 
-impl From<&dyn Shape> for Plane {
-    fn from(shape: &dyn Shape) -> Self {
-        Plane {
-            props: shape.get_props().clone(),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -103,7 +95,7 @@ mod tests {
         let xs = p.local_intersect(r).unwrap();
 
         assert_eq!(xs.get(0).unwrap().t, 1.);
-        assert_eq!(p, xs.get(0).unwrap().object.into());
+        assert_eq!(p.get_id(), xs.get(0).unwrap().object.get_id());
     }
 
     #[test]
@@ -113,6 +105,6 @@ mod tests {
         let xs = p.local_intersect(r).unwrap();
 
         assert_eq!(xs.get(0).unwrap().t, 1.);
-        assert_eq!(p, xs.get(0).unwrap().object.into());
+        assert_eq!(p.get_id(), xs.get(0).unwrap().object.get_id());
     }
 }

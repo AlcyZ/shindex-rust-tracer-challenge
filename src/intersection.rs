@@ -25,6 +25,7 @@ impl<'a> Intersection<'a> {
             inside = true;
             normal_v = -normal_v;
         }
+        let reflect_v = ray.direction.reflect(normal_v);
         let over_point = point + normal_v * EPSILON;
 
         Computation::new(
@@ -34,6 +35,7 @@ impl<'a> Intersection<'a> {
             over_point,
             eye_v,
             normal_v,
+            reflect_v,
             inside,
         )
     }
@@ -47,6 +49,7 @@ pub(crate) struct Computation<'a> {
     pub(crate) over_point: Tuple,
     pub(crate) eye_v: Tuple,
     pub(crate) normal_v: Tuple,
+    pub(crate) reflect_v: Tuple,
     pub(crate) inside: bool,
 }
 
@@ -58,6 +61,7 @@ impl<'a> Computation<'a> {
         over_point: Tuple,
         eye_v: Tuple,
         normal_v: Tuple,
+        reflect_v: Tuple,
         inside: bool,
     ) -> Computation {
         Computation {
@@ -67,6 +71,7 @@ impl<'a> Computation<'a> {
             over_point,
             eye_v,
             normal_v,
+            reflect_v,
             inside,
         }
     }
@@ -140,6 +145,7 @@ mod tests {
     use super::*;
     use crate::math::transformation::translation;
     use crate::math::EPSILON;
+    use crate::plane::Plane;
     use crate::ray::Ray;
     use crate::sphere::Sphere;
     use crate::tuple::Tuple;
@@ -150,7 +156,7 @@ mod tests {
         let i = Intersection::new(3.5, &s);
 
         assert_eq!(3.5, i.t);
-        assert_eq!(s, i.object.into());
+        assert_eq!(s.get_id(), i.object.get_id());
     }
 
     #[test]
@@ -280,5 +286,21 @@ mod tests {
 
         assert!(comps.over_point.z < -EPSILON / 2.);
         assert!(comps.point.z > comps.over_point.z)
+    }
+
+    #[test]
+    fn test_precomputing_the_reflection_vector() {
+        let shape = Plane::new();
+        let r = Ray::new(
+            Tuple::point(0., 1., -1.),
+            Tuple::direction(0., -2f64.sqrt() / 2., 2f64.sqrt() / 2.),
+        );
+        let i = Intersection::new(2f64.sqrt(), &shape);
+        let comps = i.prepare_computation(r);
+
+        assert_eq!(
+            Tuple::direction(0., 2f64.sqrt() / 2., 2f64.sqrt() / 2.),
+            comps.reflect_v
+        );
     }
 }

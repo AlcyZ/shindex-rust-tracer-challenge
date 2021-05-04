@@ -3,6 +3,9 @@ use crate::math::matrix::M4;
 use crate::ray::Ray;
 use crate::tuple::Tuple;
 use crate::world::World;
+use std::sync::mpsc::channel;
+use std::sync::Arc;
+use threadpool::ThreadPool;
 
 pub(crate) struct Camera {
     h_size: usize,
@@ -40,17 +43,56 @@ impl Camera {
         }
     }
 
-    pub(crate) fn render(&self, world: &World) -> Canvas {
+    pub(crate) fn render(&self, world: Arc<World>) -> Canvas {
         let mut canvas = Canvas::new(self.h_size, self.v_size);
 
         for y in 0..self.v_size {
             for x in 0..self.h_size {
                 let ray = self.ray_for_pixel(x, y);
-                let color = world.color_at(ray);
+                let color = world.color_at(ray, 5);
                 canvas.write_pixel(x, y, color);
             }
+        }
 
-            println!("finished row: {}", y + 1);
+        canvas
+    }
+
+    pub(crate) fn render_multi_threaded(&self, world: Arc<World>) -> Canvas {
+        let mut canvas = Canvas::new(self.h_size, self.v_size);
+
+        let (tx, rx) = channel();
+        let pool = ThreadPool::new(num_cpus::get());
+
+        for y in 0..self.v_size {
+            for x in 0..self.h_size {
+                let ray = self.ray_for_pixel(x, y);
+                let tx = tx.clone();
+                let world = world.clone();
+
+                pool.execute(move || {
+                    let color = world.color_at(ray, 5);
+                    tx.send((x, y, color)).expect("failed to send");
+                });
+            }
+        }
+
+        let mut counter = 0;
+        let max = self.v_size * self.h_size;
+
+        for _ in 0..max {
+            let (x, y, color) = rx.recv().unwrap();
+            canvas.write_pixel(x, y, color);
+
+            if counter % 5000 == 0 {
+                let percent = (counter as f64 / max as f64) * 100.;
+
+                println!(
+                    "processed {} pixels from {} ({:.2}%)",
+                    counter, max, percent
+                )
+            }
+
+            counter += 1;
         }
 
         canvas
@@ -174,7 +216,7 @@ mod tests {
         let up = Tuple::direction(0., 1., 0.);
         c.transform = view_transform(from, to, up);
 
-        let image = c.render(&w);
+        let image = c.render(Arc::new(w));
         assert_eq!(
             Color::new(0.38066, 0.47583, 0.2855),
             image.pixel_at(5, 5).unwrap()
