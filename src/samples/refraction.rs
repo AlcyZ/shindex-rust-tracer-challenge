@@ -1,8 +1,6 @@
-use crate::camera::Camera;
-use crate::canvas::Canvas;
 use crate::color::Color;
 use crate::light::PointLight;
-use crate::math::transformation::{rotation_x, scaling, translation, view_transform};
+use crate::math::transformation::{rotation_x, scaling, translation};
 use crate::pattern::checker::CheckerPattern;
 use crate::plane::Plane;
 use crate::samples::utility::{date_ymd_his, save, SceneCamera};
@@ -10,12 +8,12 @@ use crate::shape::Shape;
 use crate::sphere::Sphere;
 use crate::tuple::Tuple;
 use crate::world::World;
-use chrono::{Datelike, Local, Timelike};
+
 use std::f64::consts::PI;
 use std::sync::Arc;
 use std::time::Instant;
 
-pub fn run() {
+pub fn _run() {
     // WORLD SETUP
     let mut world = World::new();
     world.light = Some(PointLight::new(Tuple::point(-5., 5., -5.), Color::white()));
@@ -99,7 +97,7 @@ pub fn run() {
     world.objects.push(Box::new(right_before_sphere));
 
     // CAMERA SETUP
-    let mut camera = SceneCamera::new(Tuple::point(0., 2.0, -8.), Tuple::point(0., 0., 0.));
+    let camera = SceneCamera::new(Tuple::point(0., 2.0, -8.), Tuple::point(0., 0., 0.));
     let date = date_ymd_his();
     let w = Arc::new(world);
 

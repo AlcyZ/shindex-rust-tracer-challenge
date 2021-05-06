@@ -1,15 +1,10 @@
-use crate::camera::Camera;
-use crate::canvas::Canvas;
 use crate::color::Color;
 use crate::light::PointLight;
 use crate::math::matrix::M4;
-use crate::math::transformation::{
-    rotation_x, rotation_y, rotation_z, scaling, translation, view_transform,
-};
+use crate::math::transformation::{rotation_x, rotation_y, rotation_z, scaling, translation};
 use crate::pattern::checker::CheckerPattern;
 use crate::pattern::gradient::GradientPattern;
-use crate::pattern::ring::RingPattern;
-use crate::pattern::stripe::StripePattern;
+
 use crate::pattern::Pattern;
 use crate::plane::Plane;
 use crate::samples::utility::{date_ymd_his, save, SceneCamera};
@@ -17,12 +12,12 @@ use crate::shape::Shape;
 use crate::sphere::Sphere;
 use crate::tuple::Tuple;
 use crate::world::World;
-use chrono::{Datelike, Local, Timelike};
+
 use std::f64::consts::PI;
 use std::sync::Arc;
 use std::time::Instant;
 
-pub fn run() {
+pub fn _run() {
     let mut world = World::new();
     world.light = Some(PointLight::new(Tuple::point(0., 5., -10.), Color::white()));
 
@@ -109,7 +104,7 @@ pub fn run() {
     println!("start rendering");
 
     for foo in 0..1 {
-        camera.move_camera(0., 0.1, 0.);
+        camera._move_camera(0., 0.1, 0.);
 
         let w = w.clone();
         let canvas = camera.get_camera().render_multi_threaded(w);

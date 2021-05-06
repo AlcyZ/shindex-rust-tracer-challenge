@@ -16,5 +16,5 @@ mod tuple;
 mod world;
 
 fn main() {
-    samples::cube_sample::run();
+    samples::cube_sample::_run();
 }

@@ -3,8 +3,6 @@ use crate::math::{f64_eq, EPSILON};
 use crate::ray::Ray;
 use crate::shape::{Shape, ShapeProps};
 use crate::tuple::Tuple;
-use std::cmp::{max, min};
-use std::f64::INFINITY;
 
 #[derive(Debug)]
 pub(crate) struct Cube {
@@ -19,13 +17,13 @@ impl Cube {
     }
 
     fn check_axis(origin: f64, direction: f64) -> (f64, f64) {
-        let t_min_numerator = (-1. - origin);
-        let t_max_numerator = (1. - origin);
+        let t_min_numerator = -1. - origin;
+        let t_max_numerator = 1. - origin;
 
         let (t_min, t_max) = if direction.abs() >= EPSILON {
             (t_min_numerator / direction, t_max_numerator / direction)
         } else {
-            (t_min_numerator * INFINITY, t_max_numerator * INFINITY)
+            (t_min_numerator * f64::INFINITY, t_max_numerator * f64::INFINITY)
         };
 
         if t_min > t_max {

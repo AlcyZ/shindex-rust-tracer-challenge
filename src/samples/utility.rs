@@ -3,16 +3,18 @@ use crate::canvas::Canvas;
 use crate::math::transformation::view_transform;
 use crate::tuple::Tuple;
 use chrono::{Datelike, Local, Timelike};
-use std::f64::consts::PI;
 use image::io::Reader;
+use std::f64::consts::PI;
 use std::io::Cursor;
 
-const SURFACE_WIDTH: usize = 1920;
-const SURFACE_HEIGHT: usize = 1080;
+// const SURFACE_WIDTH: usize = 1920;
+// const SURFACE_HEIGHT: usize = 1080;
 // const SURFACE_WIDTH: usize = 640;
 // const SURFACE_HEIGHT: usize = 480;
 // const SURFACE_WIDTH: usize = 320;
 // const SURFACE_HEIGHT: usize = 240;
+const SURFACE_WIDTH: usize = 32;
+const SURFACE_HEIGHT: usize = 24;
 
 pub(super) fn save(name: &str, canvas: Canvas, image: usize, date: &str) {
     let destination = format!(
@@ -22,7 +24,9 @@ pub(super) fn save(name: &str, canvas: Canvas, image: usize, date: &str) {
         number = image
     );
 
-    let reader = Reader::new(Cursor::new(canvas.to_ppm())).with_guessed_format().expect("Cursor io never fails");
+    let reader = Reader::new(Cursor::new(canvas.to_ppm()))
+        .with_guessed_format()
+        .expect("Cursor io never fails");
     let img = reader.decode().unwrap();
 
     img.save(destination).unwrap()
@@ -63,7 +67,7 @@ impl SceneCamera {
         }
     }
 
-    pub(super) fn move_camera(&mut self, x: f64, y: f64, z: f64) {
+    pub(super) fn _move_camera(&mut self, x: f64, y: f64, z: f64) {
         self.transform.x += x;
         self.transform.y += y;
         self.transform.z += z;

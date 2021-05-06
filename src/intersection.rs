@@ -1,6 +1,6 @@
 use crate::math::EPSILON;
 use crate::ray::Ray;
-use crate::shape::{Shape, ShapeProps};
+use crate::shape::Shape;
 use crate::tuple::Tuple;
 use std::cmp::Ordering;
 use uuid::Uuid;

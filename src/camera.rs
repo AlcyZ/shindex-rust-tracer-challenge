@@ -43,7 +43,7 @@ impl Camera {
         }
     }
 
-    pub(crate) fn render(&self, world: Arc<World>) -> Canvas {
+    pub(crate) fn _render(&self, world: Arc<World>) -> Canvas {
         let mut canvas = Canvas::new(self.h_size, self.v_size);
 
         for y in 0..self.v_size {
@@ -216,7 +216,7 @@ mod tests {
         let up = Tuple::direction(0., 1., 0.);
         c.transform = view_transform(from, to, up);
 
-        let image = c.render(Arc::new(w));
+        let image = c._render(Arc::new(w));
         assert_eq!(
             Color::new(0.38066, 0.47583, 0.2855),
             image.pixel_at(5, 5).unwrap()

@@ -3,7 +3,7 @@ use crate::intersection::{Computation, Intersections};
 use crate::light::PointLight;
 use crate::ray::Ray;
 use crate::shape::Shape;
-use crate::sphere::Sphere;
+
 use crate::tuple::Tuple;
 
 pub(crate) struct World {
@@ -154,6 +154,7 @@ mod tests {
     use crate::pattern::{Pattern, PatternProps};
     use crate::plane::Plane;
     use crate::ray::Ray;
+    use crate::sphere::Sphere;
     use crate::tuple::Tuple;
 
     fn default_world() -> World {
