@@ -1,13 +1,13 @@
-use crate::color::Color;
-use crate::cube::Cube;
-use crate::light::PointLight;
 use crate::math::transformation::{scaling, translation};
+use crate::math::tuple::Tuple;
 use crate::pattern::checker::CheckerPattern;
+use crate::primitives::cube::Cube;
+use crate::primitives::shape::{Shape, ShapeProps};
+use crate::primitives::sphere::Sphere;
 use crate::samples::utility::{date_ymd_his, save, SceneCamera};
-use crate::shape::{Shape, ShapeProps};
-use crate::sphere::Sphere;
-use crate::tuple::Tuple;
-use crate::world::World;
+use crate::scene::color::Color;
+use crate::scene::light::PointLight;
+use crate::scene::world::World;
 use std::sync::Arc;
 use std::time::Instant;
 

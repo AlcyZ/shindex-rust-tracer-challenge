@@ -1,7 +1,7 @@
+use crate::math::tuple::Tuple;
 use crate::math::EPSILON;
-use crate::ray::Ray;
-use crate::shape::Shape;
-use crate::tuple::Tuple;
+use crate::primitives::shape::Shape;
+use crate::scene::rendering::ray::Ray;
 use std::cmp::Ordering;
 use uuid::Uuid;
 
@@ -255,11 +255,11 @@ impl<'a> Intersections<'a> {
 mod tests {
     use super::*;
     use crate::math::transformation::{scaling, translation};
+    use crate::math::tuple::Tuple;
     use crate::math::{f64_eq, EPSILON};
-    use crate::plane::Plane;
-    use crate::ray::Ray;
-    use crate::sphere::Sphere;
-    use crate::tuple::Tuple;
+    use crate::primitives::plane::Plane;
+    use crate::primitives::sphere::Sphere;
+    use crate::scene::rendering::ray::Ray;
 
     #[test]
     fn test_intersection_encapsulate_t_and_object() {

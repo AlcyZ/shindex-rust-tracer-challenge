@@ -1,9 +1,9 @@
-use crate::color::Color;
-use crate::light::PointLight;
 use crate::math::f64_eq;
+use crate::math::tuple::Tuple;
 use crate::pattern::Pattern;
-use crate::shape::Shape;
-use crate::tuple::Tuple;
+use crate::primitives::shape::Shape;
+use crate::scene::color::Color;
+use crate::scene::light::PointLight;
 
 #[derive(Debug)]
 pub(crate) struct Material {
@@ -164,11 +164,11 @@ impl PartialEq for Material {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::color::Color;
-    use crate::light::PointLight;
+    use crate::math::tuple::Tuple;
     use crate::pattern::stripe::StripePattern;
-    use crate::sphere::Sphere;
-    use crate::tuple::Tuple;
+    use crate::primitives::sphere::Sphere;
+    use crate::scene::color::Color;
+    use crate::scene::light::PointLight;
 
     #[test]
     fn test_default_material() {

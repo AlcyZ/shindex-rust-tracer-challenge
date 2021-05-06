@@ -1,5 +1,5 @@
 use crate::math::matrix::M4;
-use crate::tuple::Tuple;
+use crate::math::tuple::Tuple;
 
 pub(crate) fn translation(x: f64, y: f64, z: f64) -> M4 {
     let mut base = M4::identity();
@@ -84,7 +84,7 @@ pub(crate) fn view_transform(from: Tuple, to: Tuple, up: Tuple) -> M4 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tuple::Tuple;
+    use crate::math::tuple::Tuple;
     use std::f64::consts::PI;
 
     #[test]

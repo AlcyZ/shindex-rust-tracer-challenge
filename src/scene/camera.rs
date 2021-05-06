@@ -1,8 +1,8 @@
-use crate::canvas::Canvas;
 use crate::math::matrix::M4;
-use crate::ray::Ray;
-use crate::tuple::Tuple;
-use crate::world::World;
+use crate::math::tuple::Tuple;
+use crate::scene::canvas::Canvas;
+use crate::scene::rendering::ray::Ray;
+use crate::scene::world::World;
 use std::sync::mpsc::channel;
 use std::sync::Arc;
 use threadpool::ThreadPool;
@@ -124,14 +124,14 @@ impl Camera {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::color::Color;
-    use crate::light::PointLight;
     use crate::math::f64_eq;
     use crate::math::transformation::{rotation_y, scaling, translation, view_transform};
-    use crate::shape::Shape;
-    use crate::sphere::Sphere;
-    use crate::tuple::Tuple;
-    use crate::world::World;
+    use crate::math::tuple::Tuple;
+    use crate::primitives::shape::Shape;
+    use crate::primitives::sphere::Sphere;
+    use crate::scene::color::Color;
+    use crate::scene::light::PointLight;
+    use crate::scene::world::World;
     use std::f64::consts::PI;
 
     #[test]

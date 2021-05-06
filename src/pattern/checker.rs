@@ -1,6 +1,6 @@
-use crate::color::Color;
+use crate::math::tuple::Tuple;
 use crate::pattern::{Pattern, PatternProps};
-use crate::tuple::Tuple;
+use crate::scene::color::Color;
 
 #[derive(Debug)]
 pub(crate) struct CheckerPattern {
@@ -40,8 +40,8 @@ impl Pattern for CheckerPattern {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::color::Color;
-    use crate::tuple::Tuple;
+    use crate::math::tuple::Tuple;
+    use crate::scene::color::Color;
 
     #[test]
     fn test_checkers_should_repeat_in_x() {

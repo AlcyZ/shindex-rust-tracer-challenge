@@ -1,8 +1,8 @@
-use crate::intersection::{Intersection, Intersections};
+use crate::math::tuple::Tuple;
 use crate::math::EPSILON;
-use crate::ray::Ray;
-use crate::shape::{Shape, ShapeProps};
-use crate::tuple::Tuple;
+use crate::primitives::shape::{Shape, ShapeProps};
+use crate::scene::rendering::intersection::{Intersection, Intersections};
+use crate::scene::rendering::ray::Ray;
 
 #[derive(Debug)]
 pub(crate) struct Plane {
@@ -52,8 +52,8 @@ impl PartialEq for Plane {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ray::Ray;
-    use crate::tuple::Tuple;
+    use crate::math::tuple::Tuple;
+    use crate::scene::rendering::ray::Ray;
 
     #[test]
     fn test_normal_of_plane_is_constant_everywhere() {

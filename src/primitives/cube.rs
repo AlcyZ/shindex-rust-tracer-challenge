@@ -1,8 +1,8 @@
-use crate::intersection::{Intersection, Intersections};
+use crate::math::tuple::Tuple;
 use crate::math::{f64_eq, EPSILON};
-use crate::ray::Ray;
-use crate::shape::{Shape, ShapeProps};
-use crate::tuple::Tuple;
+use crate::primitives::shape::{Shape, ShapeProps};
+use crate::scene::rendering::intersection::{Intersection, Intersections};
+use crate::scene::rendering::ray::Ray;
 
 #[derive(Debug)]
 pub(crate) struct Cube {
@@ -23,7 +23,10 @@ impl Cube {
         let (t_min, t_max) = if direction.abs() >= EPSILON {
             (t_min_numerator / direction, t_max_numerator / direction)
         } else {
-            (t_min_numerator * f64::INFINITY, t_max_numerator * f64::INFINITY)
+            (
+                t_min_numerator * f64::INFINITY,
+                t_max_numerator * f64::INFINITY,
+            )
         };
 
         if t_min > t_max {
@@ -78,8 +81,8 @@ impl Shape for Cube {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ray::Ray;
-    use crate::tuple::Tuple;
+    use crate::math::tuple::Tuple;
+    use crate::scene::rendering::ray::Ray;
 
     fn test_ray_cube_intersection(origin: Tuple, direction: Tuple, t1: f64, t2: f64) {
         let c = Cube::new();

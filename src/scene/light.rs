@@ -1,5 +1,5 @@
-use crate::color::Color;
-use crate::tuple::Tuple;
+use crate::math::tuple::Tuple;
+use crate::scene::color::Color;
 
 #[derive(Copy, Clone, Debug)]
 pub(crate) struct PointLight {
@@ -25,8 +25,8 @@ impl PartialEq for PointLight {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::color::Color;
-    use crate::tuple::Tuple;
+    use crate::math::tuple::Tuple;
+    use crate::scene::color::Color;
 
     #[test]
     fn test_point_light_has_position_and_intensity() {

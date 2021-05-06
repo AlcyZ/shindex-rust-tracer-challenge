@@ -1,7 +1,7 @@
-use crate::camera::Camera;
-use crate::canvas::Canvas;
 use crate::math::transformation::view_transform;
-use crate::tuple::Tuple;
+use crate::math::tuple::Tuple;
+use crate::scene::camera::Camera;
+use crate::scene::canvas::Canvas;
 use chrono::{Datelike, Local, Timelike};
 use image::io::Reader;
 use std::f64::consts::PI;

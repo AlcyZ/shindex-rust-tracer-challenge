@@ -1,7 +1,7 @@
-use crate::color::Color;
 use crate::math::matrix::M4;
-use crate::shape::Shape;
-use crate::tuple::Tuple;
+use crate::math::tuple::Tuple;
+use crate::primitives::shape::Shape;
+use crate::scene::color::Color;
 use std::fmt::Debug;
 
 pub(crate) mod checker;
@@ -48,10 +48,10 @@ impl PatternProps {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::color::Color;
     use crate::math::transformation::{scaling, translation};
-    use crate::shape::Shape;
-    use crate::sphere::Sphere;
+    use crate::primitives::shape::Shape;
+    use crate::primitives::sphere::Sphere;
+    use crate::scene::color::Color;
 
     #[derive(Copy, Clone, Debug)]
     struct TestPattern {

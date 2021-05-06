@@ -1,17 +1,17 @@
-use crate::color::Color;
-use crate::light::PointLight;
 use crate::math::matrix::M4;
 use crate::math::transformation::{rotation_x, rotation_y, rotation_z, scaling, translation};
 use crate::pattern::checker::CheckerPattern;
 use crate::pattern::gradient::GradientPattern;
+use crate::scene::color::Color;
+use crate::scene::light::PointLight;
 
+use crate::math::tuple::Tuple;
 use crate::pattern::Pattern;
-use crate::plane::Plane;
+use crate::primitives::plane::Plane;
+use crate::primitives::shape::Shape;
+use crate::primitives::sphere::Sphere;
 use crate::samples::utility::{date_ymd_his, save, SceneCamera};
-use crate::shape::Shape;
-use crate::sphere::Sphere;
-use crate::tuple::Tuple;
-use crate::world::World;
+use crate::scene::world::World;
 
 use std::f64::consts::PI;
 use std::sync::Arc;

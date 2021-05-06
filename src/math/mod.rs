@@ -1,5 +1,6 @@
 pub(crate) mod matrix;
 pub(crate) mod transformation;
+pub(crate) mod tuple;
 
 pub(crate) const EPSILON: f64 = 0.00001;
 

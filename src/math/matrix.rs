@@ -1,5 +1,5 @@
 use crate::math::f64_eq;
-use crate::tuple::Tuple;
+use crate::math::tuple::Tuple;
 use std::ops::Mul;
 
 #[derive(Copy, Clone, Debug)]
@@ -295,7 +295,7 @@ impl PartialEq for M2 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tuple::Tuple;
+    use crate::math::tuple::Tuple;
 
     #[test]
     fn test_create_and_access_m4_matrix() {

@@ -1,5 +1,5 @@
 use crate::math::matrix::M4;
-use crate::tuple::Tuple;
+use crate::math::tuple::Tuple;
 
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct Ray {
@@ -25,7 +25,7 @@ impl Ray {
 mod tests {
     use super::*;
     use crate::math::transformation::{scaling, translation};
-    use crate::tuple::Tuple;
+    use crate::math::tuple::Tuple;
 
     #[test]
     fn test_create_and_query_ray() {

@@ -1,10 +1,10 @@
-use crate::color::Color;
-use crate::intersection::Intersections;
-use crate::material::Material;
 use crate::math::matrix::M4;
+use crate::math::tuple::Tuple;
 use crate::pattern::Pattern;
-use crate::ray::Ray;
-use crate::tuple::Tuple;
+use crate::scene::color::Color;
+use crate::scene::material::Material;
+use crate::scene::rendering::intersection::Intersections;
+use crate::scene::rendering::ray::Ray;
 use std::fmt::Debug;
 use uuid::Uuid;
 
@@ -111,7 +111,7 @@ impl ShapeProps {
 mod tests {
     use super::*;
     use crate::math::transformation::{rotation_z, scaling, translation};
-    use std::f64::consts::PI;
+    use std::f64::consts::{PI, FRAC_1_SQRT_2};
 
     #[derive(Debug)]
     struct TestShape {
@@ -218,8 +218,8 @@ mod tests {
         let mut s = TestShape::new();
         s.props.set_transform(translation(0., 1., 0.));
 
-        let n = s.normal_at(Tuple::point(0., 1.70711, -0.70711));
-        assert_eq!(n, Tuple::direction(0., 0.70711, -0.70711));
+        let n = s.normal_at(Tuple::point(0., 1.70711, -FRAC_1_SQRT_2));
+        assert_eq!(n, Tuple::direction(0., FRAC_1_SQRT_2, -FRAC_1_SQRT_2));
     }
 
     #[test]

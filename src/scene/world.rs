@@ -1,10 +1,10 @@
-use crate::color::Color;
-use crate::intersection::{Computation, Intersections};
-use crate::light::PointLight;
-use crate::ray::Ray;
-use crate::shape::Shape;
+use crate::primitives::shape::Shape;
+use crate::scene::color::Color;
+use crate::scene::light::PointLight;
+use crate::scene::rendering::intersection::{Computation, Intersections};
+use crate::scene::rendering::ray::Ray;
 
-use crate::tuple::Tuple;
+use crate::math::tuple::Tuple;
 
 pub(crate) struct World {
     pub(crate) light: Option<PointLight>,
@@ -148,14 +148,14 @@ impl World {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::color::Color;
-    use crate::intersection::Intersection;
     use crate::math::transformation::{scaling, translation};
+    use crate::math::tuple::Tuple;
     use crate::pattern::{Pattern, PatternProps};
-    use crate::plane::Plane;
-    use crate::ray::Ray;
-    use crate::sphere::Sphere;
-    use crate::tuple::Tuple;
+    use crate::primitives::plane::Plane;
+    use crate::primitives::sphere::Sphere;
+    use crate::scene::color::Color;
+    use crate::scene::rendering::intersection::Intersection;
+    use crate::scene::rendering::ray::Ray;
 
     fn default_world() -> World {
         let point_light = PointLight::new(Tuple::point(-10., 10., -10.), Color::new(1., 1., 1.));
