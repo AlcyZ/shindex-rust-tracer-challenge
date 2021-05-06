@@ -1,176 +1,189 @@
-use crate::color::{col_to_string, Color};
+use crate::color::Color;
 
-pub struct Canvas {
-    pub width: usize,
-    pub height: usize,
+#[derive(Debug)]
+pub(crate) struct Canvas {
+    width: usize,
+    height: usize,
     pixels: Vec<Vec<Color>>,
 }
 
-fn ppm_push(data: &mut Vec<String>, line: &mut String, col_str: String) {
-    if line.len() > 67 {
-        data.push(line[0..line.len() - 1].to_string());
-        line.truncate(0);
-    }
-    line.push_str(&col_str);
-    line.push_str(" ");
-}
-
 impl Canvas {
-    pub fn new(width: usize, height: usize) -> Canvas {
-        let r = vec![Color::black(); width];
-        let pixels = vec![r; height];
+    pub(crate) fn new(width: usize, height: usize) -> Canvas {
+        let row = vec![Color::new(0., 0., 0.); width];
+        let pixels = vec![row; height];
 
-        Canvas { width, height, pixels }
-    }
-
-    pub fn pixel_at(&self, width: usize, height: usize) -> &Color {
-        &self.pixels[height][width]
-    }
-
-    pub fn write_pixel(&mut self, width: usize, height: usize, c: Color) {
-        if let Option::Some(foo) = self.pixels.get(height) {
-            if let Option::Some(_) = foo.get(width) {
-                self.pixels[height][width] = c
-            }
+        Canvas {
+            width,
+            height,
+            pixels,
         }
     }
 
-    pub fn to_ppm(&self) -> String {
-        let header = self.ppm_header();
-        let body = self.ppm_body();
-        let data = [header, body];
+    pub(crate) fn pixel_at(&self, width: usize, height: usize) -> Option<Color> {
+        if width > self.width || height > self.height {
+            return None;
+        }
 
-        data.join("\n")
+        Some(self.pixels[height][width])
     }
 
-    fn ppm_header(&self) -> String {
-        format!("P3\n{} {}\n255", self.width, self.height)
+    pub(crate) fn write_pixel(&mut self, width: usize, height: usize, color: Color) {
+        if width > self.width || height > self.height {
+            return;
+        }
+
+        self.pixels[height][width] = color;
     }
 
-    fn ppm_body(&self) -> String {
-        let mut lines: Vec<String> = Vec::new();
+    pub(crate) fn to_ppm(&self) -> String {
+        let mut header = format!("P3\n{} {}\n255", self.width, self.height);
+        let mut data = String::new();
 
         for h in 0..self.height {
-            let mut line = "".to_string();
-            for w in 0..self.width {
-                let pix = self.pixel_at(w, h);
-                let red = col_to_string(&pix.red);
-                let green = col_to_string(&pix.green);
-                let blue = col_to_string(&pix.blue);
+            let mut row = String::from("\n");
 
-                ppm_push(&mut lines, &mut line, red);
-                ppm_push(&mut lines, &mut line, green);
-                ppm_push(&mut lines, &mut line, blue);
+            for w in 0..self.width {
+                let pixel = self.pixel_at(w, h).unwrap();
+
+                let red = Canvas::color_byte_string(pixel.red);
+                if row.len() + red.len() > 70 {
+                    data.push_str(&row.trim_end());
+                    row = String::from("\n");
+                }
+                row.push_str(&red);
+                row.push_str(" ");
+
+                let green = Canvas::color_byte_string(pixel.green);
+                if row.len() + green.len() > 70 {
+                    data.push_str(&row.trim_end());
+                    row = String::from("\n");
+                }
+                row.push_str(&green);
+                row.push_str(" ");
+
+                let blue = Canvas::color_byte_string(pixel.blue);
+                if row.len() + blue.len() > 70 {
+                    data.push_str(&row.trim_end());
+                    row = String::from("\n");
+                }
+                row.push_str(&blue);
+                row.push_str(" ");
             }
-            lines.push(line[0..line.len() - 1].to_string())
+
+            data.push_str(&row.trim_end());
         }
 
-        lines.push("".to_string());
-        lines.join("\n")
+        header.push_str(&data);
+        header.push_str("\n");
+
+        header
+    }
+
+    fn color_byte_string(color: f64) -> String {
+        (color.clamp(0., 1.) * 255.).round().to_string()
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::canvas::Canvas;
+    use super::*;
     use crate::color::Color;
 
     #[test]
-    fn creating_a_canvas() {
+    fn test_creating_canvas() {
         let c = Canvas::new(10, 20);
-        let black = Color::new(0_f64, 0_f64, 0_f64);
 
-        assert_eq!(10, c.width);
-        assert_eq!(20, c.height);
+        assert_eq!(c.width, 10);
+        assert_eq!(c.height, 20);
 
-        for w in 0..c.width {
-            for h in 0..c.height {
-                assert_eq!(&black, c.pixel_at(w, h));
+        let e = Color::new(0., 0., 0.);
+
+        for w in 0..10 {
+            for h in 0..20 {
+                let r = c.pixel_at(w, h);
+                assert_eq!(e, r.unwrap());
             }
         }
     }
 
     #[test]
-    fn writing_pixels_to_canvas() {
+    fn test_write_pixel() {
         let mut c = Canvas::new(10, 20);
-        let red = Color::new(1_f64, 0_f64, 0_f64);
+        let red = Color::new(1., 0., 0.);
 
         c.write_pixel(2, 3, red);
-        assert_eq!(&Color::new(1_f64, 0_f64, 0_f64), c.pixel_at(2, 3))
+
+        assert_eq!(red, c.pixel_at(2, 3).unwrap())
     }
 
     #[test]
-    fn constructing_ppm_header() {
+    fn test_create_ppm_header() {
         let c = Canvas::new(5, 3);
         let ppm = c.to_ppm();
-        let expected = ["P3", "5 3", "255"];
 
-        for (i, l) in ppm.lines().enumerate() {
-            if i < 3 {
-                assert_eq!(l, expected[i])
-            }
-        }
+        let lines = ppm.split("\n").collect::<Vec<&str>>();
+
+        assert_eq!("P3", lines[0]);
+        assert_eq!("5 3", lines[1]);
+        assert_eq!("255", lines[2]);
     }
 
     #[test]
-    fn constructing_ppm_pixel_data() {
+    fn test_create_ppm_data() {
         let mut c = Canvas::new(5, 3);
-        let c1 = Color::new(1.5, 0_f64, 0_f64);
-        let c2 = Color::new(0_f64, 0.5, 0_f64);
-        let c3 = Color::new(-0.5, 0_f64, 1_f64);
+
+        let c1 = Color::new(1.5, 0., 0.);
+        let c2 = Color::new(0., 0.5, 0.);
+        let c3 = Color::new(-0.5, 0., 1.);
 
         c.write_pixel(0, 0, c1);
         c.write_pixel(2, 1, c2);
         c.write_pixel(4, 2, c3);
 
         let ppm = c.to_ppm();
-        let expected = [
-            "P3",
-            "5 3",
-            "255",
-            "255 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
-            "0 0 0 0 0 0 0 128 0 0 0 0 0 0 0",
-            "0 0 0 0 0 0 0 0 0 0 0 0 0 0 255"
-        ];
+        let lines = ppm.split("\n").collect::<Vec<&str>>();
 
-        let mut asserted = false;
-        for (i, l) in ppm.lines().enumerate() {
-            if i >= 3 && i <= 5 {
-                assert_eq!(l, expected[i]);
-                asserted = true;
-            }
-        }
-        assert!(asserted)
+        assert_eq!("255 0 0 0 0 0 0 0 0 0 0 0 0 0 0", lines[3]);
+        assert_eq!("0 0 0 0 0 0 0 128 0 0 0 0 0 0 0", lines[4]);
+        assert_eq!("0 0 0 0 0 0 0 0 0 0 0 0 0 0 255", lines[5]);
     }
 
     #[test]
-    fn splitting_long_lines_in_ppm_files() {
+    fn test_splitting_to_long_ppm_lines() {
         let mut c = Canvas::new(10, 2);
 
-        for w in 0..c.width {
-            for h in 0..c.height {
-                c.write_pixel(w, h, Color::new(1_f64, 0.8, 0.6))
+        for w in 0..10 {
+            for h in 0..2 {
+                c.write_pixel(w, h, Color::new(1., 0.8, 0.6));
             }
         }
 
-        let expected = [
-            "P3",
-            "10 2",
-            "255",
+        let ppm = c.to_ppm();
+        let lines = ppm.split("\n").collect::<Vec<&str>>();
+
+        assert_eq!(
             "255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204",
+            lines[3]
+        );
+        assert_eq!(
             "153 255 204 153 255 204 153 255 204 153 255 204 153",
+            lines[4]
+        );
+        assert_eq!(
             "255 204 153 255 204 153 255 204 153 255 204 153 255 204 153 255 204",
-            "153 255 204 153 255 204 153 255 204 153 255 204 153"
-        ];
+            lines[5]
+        );
+        assert_eq!(
+            "153 255 204 153 255 204 153 255 204 153 255 204 153",
+            lines[6]
+        );
+    }
+
+    #[test]
+    fn test_ppm_ends_with_newlines() {
+        let c = Canvas::new(5, 3);
         let ppm = c.to_ppm();
 
-        let mut asserted = false;
-        for (i, l) in ppm.lines().enumerate() {
-            if i >= 3 && i <= 6 {
-                assert_eq!(l, expected[i]);
-                asserted = true;
-            }
-        }
-        assert!(asserted)
+        assert!(ppm.ends_with("\n"));
     }
 }

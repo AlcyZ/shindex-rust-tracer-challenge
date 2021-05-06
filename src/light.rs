@@ -1,52 +1,40 @@
 use crate::color::Color;
 use crate::tuple::Tuple;
 
-#[derive(Debug, Copy, Clone)]
-pub struct PointLight {
-    position: Tuple,
-    intensity: Color,
-}
-
-#[derive(Debug)]
-pub enum PointLightError {
-    PositionMustBePoint
+#[derive(Copy, Clone, Debug)]
+pub(crate) struct PointLight {
+    pub(crate) position: Tuple,
+    pub(crate) intensity: Color,
 }
 
 impl PointLight {
-    pub fn new(position: Tuple, intensity: Color) -> Result<PointLight, PointLightError> {
-        if position.is_vector() {
-            return Err(PointLightError::PositionMustBePoint);
+    pub(crate) fn new(position: Tuple, intensity: Color) -> PointLight {
+        PointLight {
+            position,
+            intensity,
         }
-
-        Ok(PointLight { position, intensity })
     }
+}
 
-    pub fn from_cords(x: f64, y: f64, z: f64, intensity: Color) -> PointLight {
-        PointLight::new(Tuple::point(x, y, z), intensity).unwrap()
-    }
-
-    pub fn position(&self) -> Tuple {
-        self.position
-    }
-
-    pub fn intensity(&self) -> Color {
-        self.intensity
+impl PartialEq for PointLight {
+    fn eq(&self, other: &Self) -> bool {
+        self.position == other.position && self.intensity == other.intensity
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::color::Color;
-    use crate::light::PointLight;
     use crate::tuple::Tuple;
 
     #[test]
-    fn point_in_light_has_position_and_intensity() {
-        let intensity = Color::new(1.0, 1.0, 1.0);
-        let position = Tuple::point(0.0, 0.0, 0.0);
-        let light = PointLight::new(position, intensity).unwrap();
+    fn test_point_light_has_position_and_intensity() {
+        let intensity = Color::new(1., 1., 1.);
+        let position = Tuple::point(0., 0., 0.);
+        let light = PointLight::new(position, intensity);
 
-        assert_eq!(intensity, light.intensity);
         assert_eq!(position, light.position);
+        assert_eq!(intensity, light.intensity);
     }
 }

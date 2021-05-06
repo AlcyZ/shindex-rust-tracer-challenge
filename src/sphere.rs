@@ -1,311 +1,197 @@
-use std::sync::atomic::{AtomicUsize, Ordering};
-
-use crate::color::Color;
 use crate::intersection::{Intersection, Intersections};
-use crate::material::Material;
-use crate::matrix::{inverse, Matrix4x4, MATRIX_4X4_IDENTITY, mul_by_tuple, transpose};
 use crate::ray::Ray;
+use crate::shape::{Shape, ShapeProps};
 use crate::tuple::Tuple;
 
-static SPHERE_IDS: AtomicUsize = AtomicUsize::new(0);
-
-// clone feels bad with the id .. but currently i don't now any better way to support multi threading
-#[derive(Debug, Clone)]
-pub struct Sphere {
-    id: usize,
-    transform: Matrix4x4,
-    material: Material,
-}
-
 #[derive(Debug)]
-pub enum SphereError {
-    NormalWithVector,
-    NormalFailedInverse,
+pub(crate) struct Sphere {
+    props: ShapeProps,
 }
 
-impl Sphere {
-    pub fn new() -> Sphere {
-        let id = SPHERE_IDS.fetch_add(1, Ordering::SeqCst);
-        Sphere { id, transform: MATRIX_4X4_IDENTITY, material: Material::default() }
+impl Shape for Sphere {
+    fn get_props(&self) -> &ShapeProps {
+        &self.props
     }
 
-    pub fn from_mat(material: Material) -> Sphere {
-        let id = SPHERE_IDS.fetch_add(1, Ordering::SeqCst);
-
-        Sphere { id, transform: MATRIX_4X4_IDENTITY, material }
+    fn mut_props(&mut self) -> &mut ShapeProps {
+        &mut self.props
     }
 
-    pub fn intersect(&self, ray: &Ray) -> Option<[Intersection; 2]> {
-        let ray = ray.transform(inverse(self.transformation())?);
+    fn local_normal_at(&self, point: Tuple) -> Tuple {
+        point - Tuple::point(0., 0., 0.)
+    }
 
-        let sphere_to_ray = ray.origin - Tuple::point(0.0, 0.0, 0.0);
+    fn local_intersect(&self, ray: Ray) -> Option<Intersections> {
+        let sphere_origin = Tuple::point(0., 0., 0.);
+        let sphere_to_ray = ray.origin - sphere_origin;
 
         let a = ray.direction.dot(ray.direction);
-        let b = 2.0 * ray.direction.dot(sphere_to_ray);
-        let c = sphere_to_ray.dot(sphere_to_ray) - 1.0;
+        let b = 2. * ray.direction.dot(sphere_to_ray);
+        let c = sphere_to_ray.dot(sphere_to_ray) - 1.;
 
-        let discriminant = b.powi(2) - 4.0 * a * c;
+        let discriminant = b.powi(2) - 4. * a * c;
 
-        if discriminant < 0.0 {
+        if discriminant < 0. {
             return None;
         }
 
-        let t1 = (-b - discriminant.sqrt()) / (2.0 * a);
-        let t2 = (-b + discriminant.sqrt()) / (2.0 * a);
+        let t1 = (-b - discriminant.sqrt()) / (2. * a);
+        let t2 = (-b + discriminant.sqrt()) / (2. * a);
 
-        let i1 = Intersection::new(t1, self);
-        let i2 = Intersection::new(t2, self);
+        let mut xs = Intersections::new();
 
-        Some([i1, i2])
-    }
-
-    pub fn transform(&mut self, t: Matrix4x4) {
-        self.transform = t;
-    }
-    pub fn transformation(&self) -> Matrix4x4 {
-        self.transform
-    }
-
-    pub fn normal_at(&self, point: Tuple) -> Result<Tuple, SphereError> {
-        if point.is_vector() {
-            return Err(SphereError::NormalWithVector);
+        if t1 < t2 {
+            xs.push(Intersection::new(t1, self));
+            xs.push(Intersection::new(t2, self));
+        } else {
+            xs.push(Intersection::new(t2, self));
+            xs.push(Intersection::new(t1, self));
         }
-        let inverse_transformation = match inverse(self.transformation()) {
-            Some(i) => i,
-            None => return Err(SphereError::NormalFailedInverse)
-        };
-        let object_point = mul_by_tuple(inverse_transformation, point);
-        let object_normal = object_point - Tuple::point(0.0, 0.0, 0.0);
-        let mut world_normal = mul_by_tuple(transpose(inverse_transformation), object_normal);
-        world_normal.w = 0.0;
 
-        Ok(world_normal.normalize())
-    }
-
-    pub fn change_color(&mut self, color: Color) {
-        self.material.change_color(color)
-    }
-
-    pub fn change_ambient(&mut self, ambient: f64) {
-        self.material.change_ambient(ambient)
-    }
-
-    pub fn change_diffuse(&mut self, diffuse: f64) {
-        self.material.change_diffuse(diffuse)
-    }
-
-    pub fn change_specular(&mut self, specular: f64) {
-        self.material.change_specular(specular)
-    }
-
-    pub fn change_shininess(&mut self, shininess: f64) {
-        self.material.change_shininess(shininess)
-    }
-
-    pub fn apply_mat(&mut self, mat: Material) {
-        self.material = mat
-    }
-
-    pub fn material(&self) -> &Material {
-        &self.material
+        Some(xs)
     }
 }
 
-impl std::cmp::PartialEq for Sphere {
+impl PartialEq for Sphere {
     fn eq(&self, other: &Self) -> bool {
-        self.id == other.id
+        self.get_id() == other.get_id()
+    }
+}
+
+impl Sphere {
+    pub(crate) fn new() -> Sphere {
+        Sphere {
+            props: ShapeProps::default(),
+        }
+    }
+
+    pub(crate) fn glass() -> Sphere {
+        let mut s = Sphere::new();
+
+        s.mut_props().set_material_transparency(1.0);
+        s.mut_props().set_material_refractive_index(1.5);
+
+        s
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::f64::consts::PI;
-
-    use crate::color::Color;
-    use crate::material::Material;
-    use crate::matrix::{MATRIX_4X4_IDENTITY, mul};
+    use super::*;
+    use crate::math::matrix::M4;
     use crate::ray::Ray;
-    use crate::sphere::Sphere;
-    use crate::transformation::{rotation_z, scaling, translation};
     use crate::tuple::Tuple;
 
     #[test]
-    fn a_spheres_default_transformation() {
+    fn test_ray_intersect_sphere_at_two_points() {
+        let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::direction(0., 0., 1.));
         let s = Sphere::new();
 
-        assert_eq!(s.transform, MATRIX_4X4_IDENTITY)
+        let xs = s.local_intersect(r).unwrap();
+
+        assert_eq!(4., xs.get(0).unwrap().t);
+        assert_eq!(6., xs.get(1).unwrap().t);
     }
 
-
     #[test]
-    fn a_ray_intersects_a_sphere_at_two_points() {
-        let r = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0)).unwrap();
+    fn test_ray_intersect_sphere_at_tangent() {
+        let r = Ray::new(Tuple::point(0., 1., -5.), Tuple::direction(0., 0., 1.));
         let s = Sphere::new();
-        let xs = s.intersect(&r).unwrap();
 
-        assert_eq!(4.0, xs.get(0).unwrap().t());
-        assert_eq!(6.0, xs.get(1).unwrap().t());
+        let xs = s.local_intersect(r).unwrap();
+
+        assert_eq!(5., xs.get(0).unwrap().t);
+        assert_eq!(5., xs.get(1).unwrap().t);
     }
 
     #[test]
-    fn a_ray_intersects_a_sphere_at_a_tangent() {
-        let r = Ray::new(Tuple::point(0.0, 1.0, -5.0), Tuple::vector(0.0, 0.0, 1.0)).unwrap();
+    fn test_ray_misses_sphere() {
+        let r = Ray::new(Tuple::point(0., 2., -5.), Tuple::direction(0., 0., 1.));
         let s = Sphere::new();
-        let xs = s.intersect(&r).unwrap();
 
-        assert_eq!(5.0, xs.get(0).unwrap().t());
-        assert_eq!(5.0, xs.get(1).unwrap().t());
+        let r = s.local_intersect(r);
+
+        assert!(r.is_none());
     }
 
     #[test]
-    fn a_ray_missing_a_sphere() {
-        let r = Ray::new(Tuple::point(0.0, 2.0, -5.0), Tuple::vector(0.0, 0.0, 1.0)).unwrap();
+    fn test_ray_originates_in_sphere() {
+        let r = Ray::new(Tuple::point(0., 0., 0.), Tuple::direction(0., 0., 1.));
         let s = Sphere::new();
-        let xs = s.intersect(&r);
 
-        assert!(xs.is_none())
+        let xs = s.local_intersect(r).unwrap();
+
+        assert_eq!(-1., xs.get(0).unwrap().t);
+        assert_eq!(1., xs.get(1).unwrap().t);
     }
 
     #[test]
-    fn a_ray_originates_inside_a_sphere() {
-        let r = Ray::new(Tuple::point(0.0, 0.0, 0.0), Tuple::vector(0.0, 0.0, 1.0)).unwrap();
+    fn test_ray_is_behind_sphere() {
+        let r = Ray::new(Tuple::point(0., 0., 5.), Tuple::direction(0., 0., 1.));
         let s = Sphere::new();
-        let xs = s.intersect(&r).unwrap();
 
-        assert_eq!(-1.0, xs.get(0).unwrap().t());
-        assert_eq!(1.0, xs.get(1).unwrap().t());
+        let xs = s.local_intersect(r).unwrap();
+
+        assert_eq!(-6., xs.get(0).unwrap().t);
+        assert_eq!(-4., xs.get(1).unwrap().t);
     }
 
     #[test]
-    fn a_sphere_is_behind_a_ray() {
-        let r = Ray::new(Tuple::point(0.0, 0.0, 5.0), Tuple::vector(0.0, 0.0, 1.0)).unwrap();
+    fn test_intersect_sets_object_on_intersection() {
+        let r = Ray::new(Tuple::point(0., 0., -5.), Tuple::direction(0., 0., 1.));
         let s = Sphere::new();
-        let xs = s.intersect(&r).unwrap();
 
-        assert_eq!(-6.0, xs.get(0).unwrap().t());
-        assert_eq!(-4.0, xs.get(1).unwrap().t());
+        let xs = s.local_intersect(r).unwrap();
+
+        assert_eq!(s.get_id(), xs.get(0).unwrap().object.get_id());
+        assert_eq!(s.get_id(), xs.get(1).unwrap().object.get_id());
     }
 
     #[test]
-    fn intersect_sets_the_object_on_the_intersection() {
-        let ray = Ray::new(
-            Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0),
-        ).unwrap();
-        let sphere = Sphere::new();
-        let xs = sphere.intersect(&ray).unwrap();
+    fn test_normal_on_sphere_at_point_on_x_axis() {
+        let s = Sphere::new();
+        let n = s.local_normal_at(Tuple::point(1., 0., 0.));
 
-        assert_eq!(xs[0].object(), &sphere);
-        assert_eq!(xs[1].object(), &sphere)
+        assert_eq!(Tuple::direction(1., 0., 0.), n);
     }
 
     #[test]
-    fn changing_s_spheres_transformation() {
-        let mut s = Sphere::new();
-        let t = translation(2.0, 3.0, 4.0);
-        s.transform(t);
+    fn test_normal_on_sphere_at_point_on_y_axis() {
+        let s = Sphere::new();
+        let n = s.local_normal_at(Tuple::point(0., 1., 0.));
 
-        assert_eq!(s.transform, translation(2.0, 3.0, 4.0))
+        assert_eq!(Tuple::direction(0., 1., 0.), n);
     }
 
     #[test]
-    fn intersecting_a_scaled_sphere_with_a_ray() {
-        let r = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0)).unwrap();
-        let mut s = Sphere::new();
-        s.transform(scaling(2.0, 2.0, 2.0));
+    fn test_normal_on_sphere_at_point_on_z_axis() {
+        let s = Sphere::new();
+        let n = s.local_normal_at(Tuple::point(0., 0., 1.));
 
-        let xs = s.intersect(&r).unwrap();
-
-        assert_eq!(xs[0].t(), 3.0);
-        assert_eq!(xs[1].t(), 7.0);
+        assert_eq!(Tuple::direction(0., 0., 1.), n);
     }
 
     #[test]
-    fn intersecting_a_translated_sphere_with_a_ray() {
-        let r = Ray::new(Tuple::point(0.0, 0.0, -5.0), Tuple::vector(0.0, 0.0, 1.0)).unwrap();
-        let mut s = Sphere::new();
-        s.transform(scaling(5.0, 0.0, 0.0));
+    fn test_normal_on_sphere_at_non_axial_point() {
+        let s = Sphere::new();
+        let n = s.local_normal_at(Tuple::point(
+            3f64.sqrt() / 3.,
+            3f64.sqrt() / 3.,
+            3f64.sqrt() / 3.,
+        ));
 
-        let xs = s.intersect(&r);
-
-        assert!(xs.is_none());
+        assert_eq!(
+            Tuple::direction(3f64.sqrt() / 3., 3f64.sqrt() / 3., 3f64.sqrt() / 3.),
+            n
+        );
     }
 
     #[test]
-    fn normal_on_sphere_at_point_on_x_axis() {
-        let sphere = Sphere::new();
-        let expected = Tuple::vector(1.0, 0.0, 0.0);
+    fn test_helper_function_to_create_sphere_with_glassy_material() {
+        let s = Sphere::glass();
 
-        assert_eq!(sphere.normal_at(Tuple::point(1.0, 0.0, 0.0)).unwrap(), expected)
-    }
-
-    #[test]
-    fn normal_on_sphere_at_point_on_y_axis() {
-        let sphere = Sphere::new();
-        let expected = Tuple::vector(0.0, 1.0, 0.0);
-
-        assert_eq!(sphere.normal_at(Tuple::point(0.0, 1.0, 0.0)).unwrap(), expected)
-    }
-
-    #[test]
-    fn normal_on_sphere_at_point_on_z_axis() {
-        let sphere = Sphere::new();
-        let expected = Tuple::vector(0.0, 0.0, 1.0);
-
-        assert_eq!(sphere.normal_at(Tuple::point(0.0, 0.0, 5.0)).unwrap(), expected)
-    }
-
-    #[test]
-    fn normal_on_sphere_at_point_on_non_axial_point() {
-        let sphere = Sphere::new();
-        let a = 3_f64.sqrt() / 3_f64;
-
-        let actual = sphere.normal_at(Tuple::point(a, a, a)).unwrap();
-        assert_eq!(actual, Tuple::vector(a, a, a))
-    }
-
-    #[test]
-    fn the_normal_is_a_normalized_vector() {
-        let sphere = Sphere::new();
-        let a = 3_f64.sqrt() / 3_f64;
-        let actual = sphere.normal_at(Tuple::point(a, a, a)).unwrap();
-
-        assert_eq!(actual, actual.normalize())
-    }
-
-    #[test]
-    fn computing_the_normal_on_a_translated_sphere() {
-        let mut sphere = Sphere::new();
-        let translate = translation(0.0, 1.0, 0.0);
-        sphere.transform(translate);
-
-        let n = sphere.normal_at(Tuple::point(0.0, 1.70711, -0.70711)).unwrap();
-        let expected = Tuple::vector(0.0, 0.70711, -0.70711);
-
-        assert_eq!(n, expected)
-    }
-
-    #[test]
-    fn computing_the_normal_on_a_transformed_sphere() {
-        let mut sphere = Sphere::new();
-        let m = mul(scaling(1.0, 0.5, 1.0), rotation_z(PI / 5.0));
-        sphere.transform(m);
-
-        let a = 2_f64.sqrt() / 2.0;
-        let n = sphere.normal_at(Tuple::point(0.0, a, -a)).unwrap();
-
-        assert_eq!(n, Tuple::vector(0.0, 0.97014, -0.24254))
-    }
-
-
-    #[test]
-    fn material_assignment() {
-        let sphere_one = Sphere::new();
-        let mut sphere_two = Sphere::new();
-        let m = Material::new(Color::black(), 1.0, 1.0, 1.0, 100.0).unwrap();
-        let m2 = Material::new(Color::black(), 1.0, 1.0, 1.0, 100.0).unwrap();
-        sphere_two.apply_mat(m);
-
-        assert_eq!(sphere_one.material, Material::default());
-        assert_eq!(sphere_two.material, m2);
+        assert_eq!(s.get_props().get_transform(), M4::identity());
+        assert_eq!(s.get_props().get_material().get_transparency(), 1.0);
+        assert_eq!(s.get_props().get_material().get_refractive_index(), 1.5);
     }
 }

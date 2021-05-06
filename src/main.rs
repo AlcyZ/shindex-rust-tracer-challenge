@@ -1,32 +1,20 @@
-use crate::playground::circle::run as circle_run;
-use crate::playground::clock::run as clock_run;
-use crate::playground::projectile::run as projectile_run;
-use crate::playground::sphere::run as sphere_run;
-use crate::playground::spheres::run as spheres_run;
-
-mod tuple;
-mod color;
+mod camera;
 mod canvas;
-mod matrix;
-mod transformation;
-mod ray;
+mod color;
+mod cube;
+mod intersection;
 mod light;
 mod material;
+mod math;
+mod pattern;
+mod plane;
+mod ray;
+mod samples;
+mod shape;
 mod sphere;
-mod intersection;
+mod tuple;
 mod world;
-mod camera;
-mod util;
-mod playground;
 
 fn main() {
-//    projectile_run();
-//    println!();
-//    clock_run();
-//    println!();
-//    circle_run();
-//    println!();
-//    sphere_run();
-//    println!();
-    spheres_run();
+    samples::cube_sample::run();
 }
