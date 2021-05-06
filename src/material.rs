@@ -14,6 +14,8 @@ pub(crate) struct Material {
     specular: f64,
     shininess: f64,
     reflective: f64,
+    transparency: f64,
+    refractive_index: f64,
 }
 
 impl Material {
@@ -26,6 +28,8 @@ impl Material {
             specular: 0.9,
             shininess: 200.,
             reflective: 0.0,
+            transparency: 0.0,
+            refractive_index: 1.0,
         }
     }
 
@@ -116,6 +120,22 @@ impl Material {
 
     pub(crate) fn _set_shininess(&mut self, new: f64) {
         self.shininess = new
+    }
+
+    pub(crate) fn get_transparency(&self) -> f64 {
+        self.transparency
+    }
+
+    pub(crate) fn set_transparency(&mut self, new: f64) {
+        self.transparency = new
+    }
+
+    pub(crate) fn get_refractive_index(&self) -> f64 {
+        self.refractive_index
+    }
+
+    pub(crate) fn set_refractive_index(&mut self, new: f64) {
+        self.refractive_index = new
     }
 
     pub(crate) fn get_reflective(&self) -> f64 {
@@ -293,5 +313,13 @@ mod tests {
         let m = Material::new();
 
         assert_eq!(0., m.reflective);
+    }
+
+    #[test]
+    fn test_transparency_and_refractive_index_for_default_material() {
+        let m = Material::new();
+
+        assert_eq!(0.0, m.transparency);
+        assert_eq!(1.0, m.refractive_index);
     }
 }

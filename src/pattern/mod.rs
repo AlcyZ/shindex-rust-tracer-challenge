@@ -30,13 +30,13 @@ pub(crate) struct PatternProps {
 }
 
 impl PatternProps {
-    fn default() -> PatternProps {
+    pub(crate) fn default() -> PatternProps {
         PatternProps {
             transform: M4::identity(),
         }
     }
 
-    fn get_transform(&self) -> M4 {
+    pub(crate) fn get_transform(&self) -> M4 {
         self.transform
     }
 

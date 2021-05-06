@@ -64,11 +64,21 @@ impl Sphere {
             props: ShapeProps::default(),
         }
     }
+
+    pub(crate) fn glass() -> Sphere {
+        let mut s = Sphere::new();
+
+        s.mut_props().set_material_transparency(1.0);
+        s.mut_props().set_material_refractive_index(1.5);
+
+        s
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::math::matrix::M4;
     use crate::ray::Ray;
     use crate::tuple::Tuple;
 
@@ -174,5 +184,14 @@ mod tests {
             Tuple::direction(3f64.sqrt() / 3., 3f64.sqrt() / 3., 3f64.sqrt() / 3.),
             n
         );
+    }
+
+    #[test]
+    fn test_helper_function_to_create_sphere_with_glassy_material() {
+        let s = Sphere::glass();
+
+        assert_eq!(s.get_props().get_transform(), M4::identity());
+        assert_eq!(s.get_props().get_material().get_transparency(), 1.0);
+        assert_eq!(s.get_props().get_material().get_refractive_index(), 1.5);
     }
 }

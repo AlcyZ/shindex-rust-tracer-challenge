@@ -95,6 +95,13 @@ impl ShapeProps {
         self.material._set_shininess(new);
     }
 
+    pub(crate) fn set_material_transparency(&mut self, new: f64) {
+        self.material.set_transparency(new);
+    }
+    pub(crate) fn set_material_refractive_index(&mut self, new: f64) {
+        self.material.set_refractive_index(new);
+    }
+
     pub(crate) fn set_pattern(&mut self, new: Box<dyn Pattern>) {
         self.material.set_pattern(new)
     }
@@ -120,6 +127,12 @@ mod tests {
 
         fn to_local_ray(&self, ray: Ray) -> Ray {
             ray.transform(self.props.transform.inverse().unwrap())
+        }
+    }
+
+    impl PartialEq for TestShape {
+        fn eq(&self, other: &Self) -> bool {
+            self.get_id() == other.get_id()
         }
     }
 
