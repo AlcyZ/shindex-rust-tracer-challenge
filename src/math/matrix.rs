@@ -67,19 +67,6 @@ impl M4 {
         M3::from(data)
     }
 
-    fn minor(&self, row: usize, col: usize) -> f64 {
-        self.submatrix(row, col).determinant()
-    }
-
-    fn cofactor(&self, row: usize, col: usize) -> f64 {
-        let minor = self.minor(row, col);
-
-        if (row + col) as i32 & 1 == 1 {
-            -minor
-        } else {
-            minor
-        }
-    }
 
     fn determinant(&self) -> f64 {
         let mut d = 0.;
@@ -109,6 +96,12 @@ impl M4 {
         }
 
         Some(M4::from(data))
+    }
+}
+
+impl Matrix for M4 {
+    fn minor(&self, row: usize, col: usize) -> f64 {
+        self.submatrix(row, col).determinant()
     }
 }
 
@@ -215,20 +208,6 @@ impl M3 {
         M2::from(data)
     }
 
-    fn minor(&self, row: usize, col: usize) -> f64 {
-        self.submatrix(row, col).determinant()
-    }
-
-    fn cofactor(&self, row: usize, col: usize) -> f64 {
-        let minor = self.minor(row, col);
-
-        if (row + col) as i32 & 1 == 1 {
-            -minor
-        } else {
-            minor
-        }
-    }
-
     fn determinant(&self) -> f64 {
         let mut d = 0.;
 
@@ -237,6 +216,12 @@ impl M3 {
         }
 
         d
+    }
+}
+
+impl Matrix for M3 {
+    fn minor(&self, row: usize, col: usize) -> f64 {
+        self.submatrix(row, col).determinant()
     }
 }
 
@@ -290,6 +275,20 @@ impl PartialEq for M2 {
             && f64_eq(self.data[2], other.data[2])
             && f64_eq(self.data[3], other.data[3])
     }
+}
+
+trait Matrix {
+    fn cofactor(&self, row: usize, col: usize) -> f64 {
+        let minor = self.minor(row, col);
+
+        if (row + col) as i32 & 1 == 1 {
+            -minor
+        } else {
+            minor
+        }
+    }
+
+    fn minor(&self, row: usize, col: usize) -> f64;
 }
 
 #[cfg(test)]
