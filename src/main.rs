@@ -1,6 +1,7 @@
 mod camera;
 mod canvas;
 mod color;
+mod cube;
 mod intersection;
 mod light;
 mod material;
@@ -15,5 +16,5 @@ mod tuple;
 mod world;
 
 fn main() {
-    samples::sequence::run();
+    samples::cube_sample::run();
 }
