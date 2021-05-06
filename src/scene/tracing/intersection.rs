@@ -1,7 +1,7 @@
 use crate::math::tuple::Tuple;
 use crate::math::EPSILON;
 use crate::primitives::shape::Shape;
-use crate::scene::rendering::ray::Ray;
+use crate::scene::tracing::ray::Ray;
 use std::cmp::Ordering;
 use uuid::Uuid;
 
@@ -259,7 +259,7 @@ mod tests {
     use crate::math::{f64_eq, EPSILON};
     use crate::primitives::plane::Plane;
     use crate::primitives::sphere::Sphere;
-    use crate::scene::rendering::ray::Ray;
+    use crate::scene::tracing::ray::Ray;
 
     #[test]
     fn test_intersection_encapsulate_t_and_object() {

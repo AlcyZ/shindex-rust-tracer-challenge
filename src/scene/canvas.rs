@@ -1,4 +1,4 @@
-use crate::scene::color::Color;
+use crate::scene::shading::color::Color;
 
 #[derive(Debug)]
 pub(crate) struct Canvas {
@@ -87,7 +87,7 @@ impl Canvas {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::scene::color::Color;
+    use crate::scene::shading::color::Color;
 
     #[test]
     fn test_creating_canvas() {

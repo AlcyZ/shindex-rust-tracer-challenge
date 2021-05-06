@@ -67,7 +67,6 @@ impl M4 {
         M3::from(data)
     }
 
-
     fn determinant(&self) -> f64 {
         let mut d = 0.;
 

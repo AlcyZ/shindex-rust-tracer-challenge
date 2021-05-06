@@ -1,7 +1,7 @@
 use crate::math::matrix::M4;
 use crate::math::tuple::Tuple;
 use crate::scene::canvas::Canvas;
-use crate::scene::rendering::ray::Ray;
+use crate::scene::tracing::ray::Ray;
 use crate::scene::world::World;
 use std::sync::mpsc::channel;
 use std::sync::Arc;
@@ -129,8 +129,8 @@ mod tests {
     use crate::math::tuple::Tuple;
     use crate::primitives::shape::Shape;
     use crate::primitives::sphere::Sphere;
-    use crate::scene::color::Color;
-    use crate::scene::light::PointLight;
+    use crate::scene::shading::color::Color;
+    use crate::scene::shading::light::PointLight;
     use crate::scene::world::World;
     use std::f64::consts::PI;
 

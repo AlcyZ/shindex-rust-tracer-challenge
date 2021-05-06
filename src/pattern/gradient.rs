@@ -1,6 +1,6 @@
 use crate::math::tuple::Tuple;
 use crate::pattern::{Pattern, PatternProps};
-use crate::scene::color::Color;
+use crate::scene::shading::color::Color;
 
 #[derive(Debug)]
 pub(crate) struct GradientPattern {
@@ -40,7 +40,7 @@ impl Pattern for GradientPattern {
 mod tests {
     use super::*;
     use crate::math::tuple::Tuple;
-    use crate::scene::color::Color;
+    use crate::scene::shading::color::Color;
 
     #[test]
     fn test_gradient_linearly_interpolates_between_colors() {

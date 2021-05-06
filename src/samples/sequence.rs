@@ -2,8 +2,8 @@ use crate::math::matrix::M4;
 use crate::math::transformation::{rotation_x, rotation_y, rotation_z, scaling, translation};
 use crate::pattern::checker::CheckerPattern;
 use crate::pattern::gradient::GradientPattern;
-use crate::scene::color::Color;
-use crate::scene::light::PointLight;
+use crate::scene::shading::color::Color;
+use crate::scene::shading::light::PointLight;
 
 use crate::math::tuple::Tuple;
 use crate::pattern::Pattern;
@@ -101,7 +101,7 @@ pub fn _run() {
     let w = Arc::new(world);
 
     let start = Instant::now();
-    println!("start rendering");
+    println!("start tracing");
 
     for foo in 0..1 {
         camera._move_camera(0., 0.1, 0.);
@@ -112,7 +112,7 @@ pub fn _run() {
     }
 
     println!(
-        "finished rendering after {:02} seconds",
+        "finished tracing after {:02} seconds",
         start.elapsed().as_secs_f64()
     );
 }

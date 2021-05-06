@@ -1,7 +1,7 @@
 use crate::math::f64_eq;
 use crate::math::tuple::Tuple;
 use crate::pattern::{Pattern, PatternProps};
-use crate::scene::color::Color;
+use crate::scene::shading::color::Color;
 
 #[derive(Debug)]
 pub(crate) struct RingPattern {
@@ -42,7 +42,7 @@ impl Pattern for RingPattern {
 mod tests {
     use super::*;
     use crate::math::tuple::Tuple;
-    use crate::scene::color::Color;
+    use crate::scene::shading::color::Color;
 
     #[test]
     fn test_ring_should_extend_in_both_x_and_z() {

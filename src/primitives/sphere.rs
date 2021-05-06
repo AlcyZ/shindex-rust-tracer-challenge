@@ -1,7 +1,7 @@
 use crate::math::tuple::Tuple;
 use crate::primitives::shape::{Shape, ShapeProps};
-use crate::scene::rendering::intersection::{Intersection, Intersections};
-use crate::scene::rendering::ray::Ray;
+use crate::scene::tracing::intersection::{Intersection, Intersections};
+use crate::scene::tracing::ray::Ray;
 
 #[derive(Debug)]
 pub(crate) struct Sphere {
@@ -80,7 +80,7 @@ mod tests {
     use super::*;
     use crate::math::matrix::M4;
     use crate::math::tuple::Tuple;
-    use crate::scene::rendering::ray::Ray;
+    use crate::scene::tracing::ray::Ray;
 
     #[test]
     fn test_ray_intersect_sphere_at_two_points() {

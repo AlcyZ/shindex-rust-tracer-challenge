@@ -1,10 +1,10 @@
 use crate::math::matrix::M4;
 use crate::math::tuple::Tuple;
 use crate::pattern::Pattern;
-use crate::scene::color::Color;
-use crate::scene::material::Material;
-use crate::scene::rendering::intersection::Intersections;
-use crate::scene::rendering::ray::Ray;
+use crate::scene::shading::color::Color;
+use crate::scene::shading::material::Material;
+use crate::scene::tracing::intersection::Intersections;
+use crate::scene::tracing::ray::Ray;
 use std::fmt::Debug;
 use uuid::Uuid;
 
@@ -111,7 +111,7 @@ impl ShapeProps {
 mod tests {
     use super::*;
     use crate::math::transformation::{rotation_z, scaling, translation};
-    use std::f64::consts::{PI, FRAC_1_SQRT_2};
+    use std::f64::consts::{FRAC_1_SQRT_2, PI};
 
     #[derive(Debug)]
     struct TestShape {

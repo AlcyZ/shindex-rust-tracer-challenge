@@ -2,8 +2,8 @@ use crate::math::f64_eq;
 use crate::math::tuple::Tuple;
 use crate::pattern::Pattern;
 use crate::primitives::shape::Shape;
-use crate::scene::color::Color;
-use crate::scene::light::PointLight;
+use crate::scene::shading::color::Color;
+use crate::scene::shading::light::PointLight;
 
 #[derive(Debug)]
 pub(crate) struct Material {
@@ -167,8 +167,8 @@ mod tests {
     use crate::math::tuple::Tuple;
     use crate::pattern::stripe::StripePattern;
     use crate::primitives::sphere::Sphere;
-    use crate::scene::color::Color;
-    use crate::scene::light::PointLight;
+    use crate::scene::shading::color::Color;
+    use crate::scene::shading::light::PointLight;
 
     #[test]
     fn test_default_material() {

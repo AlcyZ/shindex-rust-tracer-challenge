@@ -1,8 +1,8 @@
 use crate::primitives::shape::Shape;
-use crate::scene::color::Color;
-use crate::scene::light::PointLight;
-use crate::scene::rendering::intersection::{Computation, Intersections};
-use crate::scene::rendering::ray::Ray;
+use crate::scene::shading::color::Color;
+use crate::scene::shading::light::PointLight;
+use crate::scene::tracing::intersection::{Computation, Intersections};
+use crate::scene::tracing::ray::Ray;
 
 use crate::math::tuple::Tuple;
 
@@ -153,9 +153,9 @@ mod tests {
     use crate::pattern::{Pattern, PatternProps};
     use crate::primitives::plane::Plane;
     use crate::primitives::sphere::Sphere;
-    use crate::scene::color::Color;
-    use crate::scene::rendering::intersection::Intersection;
-    use crate::scene::rendering::ray::Ray;
+    use crate::scene::shading::color::Color;
+    use crate::scene::tracing::intersection::Intersection;
+    use crate::scene::tracing::ray::Ray;
 
     fn default_world() -> World {
         let point_light = PointLight::new(Tuple::point(-10., 10., -10.), Color::new(1., 1., 1.));

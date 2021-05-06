@@ -5,8 +5,8 @@ use crate::primitives::plane::Plane;
 use crate::primitives::shape::Shape;
 use crate::primitives::sphere::Sphere;
 use crate::samples::utility::{date_ymd_his, save, SceneCamera};
-use crate::scene::color::Color;
-use crate::scene::light::PointLight;
+use crate::scene::shading::color::Color;
+use crate::scene::shading::light::PointLight;
 use crate::scene::world::World;
 
 use std::f64::consts::PI;
@@ -102,13 +102,13 @@ pub fn _run() {
     let w = Arc::new(world);
 
     let start = Instant::now();
-    println!("start rendering");
+    println!("start tracing");
 
     let canvas = camera.get_camera().render_multi_threaded(w);
     save("refraction", canvas, 1, &date);
 
     println!(
-        "finished rendering after {:02} seconds",
+        "finished tracing after {:02} seconds",
         start.elapsed().as_secs_f64()
     );
 }

@@ -1,8 +1,8 @@
 use crate::math::tuple::Tuple;
 use crate::math::{f64_eq, EPSILON};
 use crate::primitives::shape::{Shape, ShapeProps};
-use crate::scene::rendering::intersection::{Intersection, Intersections};
-use crate::scene::rendering::ray::Ray;
+use crate::scene::tracing::intersection::{Intersection, Intersections};
+use crate::scene::tracing::ray::Ray;
 
 #[derive(Debug)]
 pub(crate) struct Cube {
@@ -82,7 +82,7 @@ impl Shape for Cube {
 mod tests {
     use super::*;
     use crate::math::tuple::Tuple;
-    use crate::scene::rendering::ray::Ray;
+    use crate::scene::tracing::ray::Ray;
 
     fn test_ray_cube_intersection(origin: Tuple, direction: Tuple, t1: f64, t2: f64) {
         let c = Cube::new();

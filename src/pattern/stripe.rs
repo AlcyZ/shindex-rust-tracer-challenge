@@ -1,6 +1,6 @@
 use crate::math::tuple::Tuple;
 use crate::pattern::{Pattern, PatternProps};
-use crate::scene::color::Color;
+use crate::scene::shading::color::Color;
 
 #[derive(Debug)]
 pub(crate) struct StripePattern {
