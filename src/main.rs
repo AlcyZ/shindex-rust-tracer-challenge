@@ -5,5 +5,5 @@ mod samples;
 mod scene;
 
 fn main() {
-    samples::cube_sample::_run();
+    samples::cylinders_sample::_run();
 }

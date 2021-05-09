@@ -2,9 +2,11 @@ use crate::math::transformation::{scaling, translation};
 use crate::math::tuple::Tuple;
 use crate::pattern::checker::CheckerPattern;
 use crate::primitives::cube::Cube;
-use crate::primitives::shape::{Shape, ShapeProps};
+use crate::primitives::shape::Shape;
 use crate::primitives::sphere::Sphere;
-use crate::samples::utility::{date_ymd_his, save, SceneCamera};
+use crate::samples::utility::{
+    date_ymd_his, glass_material, mirror_material, save, water_material, SceneCamera,
+};
 use crate::scene::shading::color::Color;
 use crate::scene::shading::light::PointLight;
 use crate::scene::world::World;
@@ -80,26 +82,4 @@ pub fn _run() {
         "finished tracing after {:02} seconds",
         start.elapsed().as_secs_f64()
     );
-}
-
-fn mirror_material(props: &mut ShapeProps) {
-    props.set_material_diffuse(0.1);
-    props.set_material_ambient(0.1);
-    props.set_material_reflective(1.0);
-}
-
-fn glass_material(props: &mut ShapeProps) {
-    props.set_material_diffuse(0.1);
-    props.set_material_ambient(0.1);
-    props.set_material_reflective(0.9);
-    props.set_material_transparency(1.0);
-    props.set_material_refractive_index(1.5);
-}
-
-fn water_material(props: &mut ShapeProps) {
-    props.set_material_diffuse(0.1);
-    props.set_material_ambient(0.1);
-    props.set_material_reflective(0.9);
-    props.set_material_transparency(1.0);
-    props.set_material_refractive_index(1.33);
 }

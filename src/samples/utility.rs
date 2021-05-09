@@ -1,36 +1,63 @@
 use crate::math::transformation::view_transform;
 use crate::math::tuple::Tuple;
+use crate::primitives::shape::ShapeProps;
 use crate::scene::camera::Camera;
 use crate::scene::canvas::Canvas;
 use chrono::{Datelike, Local, Timelike};
-use image::io::Reader;
 use std::f64::consts::PI;
-use std::io::Cursor;
 
 // const SURFACE_WIDTH: usize = 1920;
 // const SURFACE_HEIGHT: usize = 1080;
 // const SURFACE_WIDTH: usize = 640;
 // const SURFACE_HEIGHT: usize = 480;
-// const SURFACE_WIDTH: usize = 320;
-// const SURFACE_HEIGHT: usize = 240;
-const SURFACE_WIDTH: usize = 32;
-const SURFACE_HEIGHT: usize = 24;
+const SURFACE_WIDTH: usize = 320;
+const SURFACE_HEIGHT: usize = 240;
+// const SURFACE_WIDTH: usize = 32;
+// const SURFACE_HEIGHT: usize = 24;
+
+pub(super) fn mirror_material(props: &mut ShapeProps) {
+    props.set_material_diffuse(0.1);
+    props.set_material_ambient(0.1);
+    props.set_material_reflective(1.0);
+    props._set_material_shininess(300.);
+    props.set_material_specular(1.);
+}
+
+pub(super) fn glass_material(props: &mut ShapeProps) {
+    props.set_material_diffuse(0.1);
+    props.set_material_ambient(0.1);
+    props.set_material_reflective(0.9);
+    props.set_material_transparency(1.0);
+    props.set_material_refractive_index(1.5);
+    props._set_material_shininess(300.);
+    props.set_material_specular(1.);
+}
+
+pub(super) fn water_material(props: &mut ShapeProps) {
+    props.set_material_diffuse(0.1);
+    props.set_material_ambient(0.1);
+    props.set_material_reflective(0.9);
+    props.set_material_transparency(1.0);
+    props.set_material_refractive_index(1.33);
+    props._set_material_shininess(15.);
+    props.set_material_specular(0.8);
+}
 
 pub(super) fn save(name: &str, canvas: Canvas, image: usize, date: &str) {
     let destination = format!(
-        "./dist/{date}-{name}_{number}.png",
+        "./dist/{date}-{name}_{number}.ppm",
         date = date,
         name = name,
         number = image
     );
 
-    let reader = Reader::new(Cursor::new(canvas.to_ppm()))
-        .with_guessed_format()
-        .expect("Cursor io never fails");
-    let img = reader.decode().unwrap();
-
-    img.save(destination).unwrap()
-    // std::fs::write(destination, canvas.to_ppm()).unwrap();
+    // let reader = Reader::new(Cursor::new(canvas.to_ppm()))
+    //     .with_guessed_format()
+    //     .expect("Cursor io never fails");
+    // let img = reader.decode().unwrap();
+    //
+    // img.save(destination).unwrap()
+    std::fs::write(destination, canvas.to_ppm()).unwrap();
 }
 
 pub(super) fn date_ymd_his() -> String {
